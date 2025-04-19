@@ -1,0 +1,55 @@
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Flask instance folder (used for configs, dev dbs)
+instance/
+
+# SQLite or dev DBs
+*.db
+*.sqlite3
+*.sqlite3-*
+
+# Flask-Migrate folder
+migrations/
+
+# Virtual environments
+venv/
+.venv/
+
+# Environment variables
+.env
+
+# VSCode settings (optional)
+.vscode/
+
+# Mac junk files
+.DS_Store
+=======
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+# Client dependencies and cache
+client/node_modules/
+client/.pnp
+client/.pnp.js
+client/node_modules/.cache/
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+client/npm-debug.log*
+client/yarn-debug.log*
+client/yarn-error.log*
+>>>>>>> b032e603 (first commit)

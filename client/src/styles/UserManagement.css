@@ -1,0 +1,121 @@
+/* Main Container */
+.UserManagement {
+    font-family: Arial, sans-serif;
+    background-color: #f0f8ff; /* Sky Blue Background */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Heading */
+  .UserManagement h1 {
+    text-align: center;
+    color: #ff7f00; /* Orange Color */
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+  }
+  
+  /* Filter & Sort Section */
+  .UserManagement .filters {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .UserManagement label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .UserManagement select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: #fff;
+    color: #333;
+  }
+  
+  /* Table Styling */
+  .UserManagement table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .UserManagement th,
+  .UserManagement td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #ddd;
+  }
+  
+  .UserManagement th {
+    background-color: #ff7f00; /* Orange header */
+    color: white;
+    font-size: 1.1rem;
+  }
+  
+  .UserManagement td {
+    background-color: #fff;
+    font-size: 1rem;
+  }
+  
+  .UserManagement td button {
+    padding: 6px 12px;
+    border: none;
+    background-color: #ff7f00; /* Orange button */
+    color: white;
+    font-size: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
+  .UserManagement td button:hover {
+    background-color: #e66a00; /* Darker orange on hover */
+  }
+  
+  /* Edit Inputs */
+  .UserManagement input {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 8px;
+    width: 100%;
+    background-color: #f9f9f9;
+  }
+  
+  .UserManagement input:focus {
+    border-color: #ff7f00; /* Orange border on focus */
+  }
+  
+  /* Edit Save & Cancel Buttons */
+  .UserManagement .save-button,
+  .UserManagement .cancel-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .UserManagement .save-button {
+    background-color: #4caf50; /* Green Save Button */
+    color: white;
+  }
+  
+  .UserManagement .save-button:hover {
+    background-color: #45a049; /* Darker Green on hover */
+  }
+  
+  .UserManagement .cancel-button {
+    background-color: #f44336; /* Red Cancel Button */
+    color: white;
+  }
+  
+  .UserManagement .cancel-button:hover {
+    background-color: #d32f2f; /* Darker Red on hover */
+  }
+  

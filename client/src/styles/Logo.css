@@ -1,0 +1,13 @@
+/* src/components/Logo.css */
+.logo-container {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    margin: 20px;
+  }
+  
+  .logo {
+    width: 100px;
+    height: auto;
+  }
+  
