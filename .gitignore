@@ -20,6 +20,7 @@ venv/
 
 # Environment variables
 .env
+server/utils.py
 
 # VSCode settings (optional)
 .vscode/
@@ -35,6 +36,7 @@ client/node_modules/
 client/.pnp
 client/.pnp.js
 client/node_modules/.cache/
+client/src/utils.js
 
 # testing
 /coverage
