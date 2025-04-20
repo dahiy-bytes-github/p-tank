@@ -1,9 +1,7 @@
-import { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
 import '../styles/SensorReadingDashboard.css';
 
 const SensorReadingsDashboard = () => {
-  const { user } = useContext(AuthContext);
   const [readings, setReadings] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -24,8 +22,6 @@ const SensorReadingsDashboard = () => {
   const [filtersApplied, setFiltersApplied] = useState(false);
 
   const fetchReadings = async () => {
-    if (!user?.token) return;
-
     setLoading(true);
     try {
       // Create base params object
@@ -44,15 +40,7 @@ const SensorReadingsDashboard = () => {
       }
 
       const params = new URLSearchParams(paramsObj);
-      const response = await fetch(`http://localhost:5555/sensorreadings?${params.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${user.token}`
-        }
-      });
-
-      if (response.status === 401) {
-        throw new Error('Authentication required');
-      }
+      const response = await fetch(`http://localhost:5555/sensorreadings?${params.toString()}`);
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -65,9 +53,6 @@ const SensorReadingsDashboard = () => {
       }));
     } catch (error) {
       console.error('Fetch error:', error);
-      if (error.message === 'Authentication required') {
-        // Handle token refresh or redirect to login
-      }
     } finally {
       setLoading(false);
     }
@@ -75,7 +60,7 @@ const SensorReadingsDashboard = () => {
 
   useEffect(() => {
     fetchReadings();
-  }, [user, pagination.page, pagination.limit, filtersApplied]);
+  }, [pagination.page, pagination.limit, filtersApplied]);
 
   const handleFilterChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -152,7 +137,7 @@ const SensorReadingsDashboard = () => {
               step="0.1"
             />
           </div>
-
+          
           <div className="sr-filter-group">
             <label className="sr-label">pH Level</label>
             <input

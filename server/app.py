@@ -318,7 +318,6 @@ class UserUpdateDelete(Resource):
         return {"message": "User deleted successfully"}, 200
 
 class SensorReadings(Resource):
-    @jwt_required()
     def get(self):
         # Get all possible filters
         filters = {
@@ -373,6 +372,7 @@ class SensorReadings(Resource):
                 "total_items": readings.total
             }
         }, 200
+
 # Add resources
 api.add_resource(Register, '/auth/register')
 api.add_resource(Login, '/auth/login')
