@@ -14,6 +14,10 @@ from dotenv import load_dotenv
 import os
 from datetime import timedelta
 from models import User
+from models import SensorReading
+from models import Notification
+from models import UserNotification
+
 from database import db
 from utils import is_valid_email
 
@@ -175,8 +179,10 @@ class Login(Resource):
 class Logout(Resource):
     @jwt_required()
     def post(self):
-        print(request.headers)  # For debugging
-        jti = get_jwt()['jti']
+        jti = get_jwt()["jti"]
+        if jti in blacklist:
+            return {"message": "Already logged out"}, 200  # ✅ Return success
+        
         blacklist.add(jti)
         return {"message": "Successfully logged out"}, 200
 
@@ -310,6 +316,63 @@ class UserUpdateDelete(Resource):
         db.session.commit()
 
         return {"message": "User deleted successfully"}, 200
+
+class SensorReadings(Resource):
+    @jwt_required()
+    def get(self):
+        # Get all possible filters
+        filters = {
+            'temp': request.args.get('temp', type=float),
+            'ph': request.args.get('ph', type=float),
+            'tank_level_min': request.args.get('tank_level_min', type=float),
+            'tank_level_max': request.args.get('tank_level_max', type=float),
+            'predicted_full': request.args.get('predicted_full', type=lambda x: x.lower() == 'true'),
+            'start_date': request.args.get('start_date'),
+            'end_date': request.args.get('end_date')
+        }
+
+        # Start building query
+        query = SensorReading.query
+
+        # Apply filters
+        if filters['temp']:
+            query = query.filter(SensorReading.temp == filters['temp'])
+        
+        if filters['ph']:
+            query = query.filter(SensorReading.ph == filters['ph'])
+        
+        if filters['tank_level_min']:
+            query = query.filter(SensorReading.tank_level_per >= filters['tank_level_min'])
+        
+        if filters['tank_level_max']:
+            query = query.filter(SensorReading.tank_level_per <= filters['tank_level_max'])
+        
+        if filters['predicted_full'] is not None:  # Explicit check for boolean
+            query = query.filter(SensorReading.predicted_full == filters['predicted_full'])
+        
+        if filters['start_date']:
+            query = query.filter(SensorReading.timestamp >= filters['start_date'])
+        
+        if filters['end_date']:
+            query = query.filter(SensorReading.timestamp <= filters['end_date'])
+
+        # Paginate and return
+        page = request.args.get('page', 1, type=int)
+        limit = min(request.args.get('limit', 10, type=int), 100)
+        
+        readings = query.order_by(SensorReading.timestamp.desc()).paginate(
+            page=page, per_page=limit, error_out=False
+        )
+
+        return {
+            "readings": [reading.to_dict() for reading in readings.items],
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total_pages": readings.pages,
+                "total_items": readings.total
+            }
+        }, 200
 # Add resources
 api.add_resource(Register, '/auth/register')
 api.add_resource(Login, '/auth/login')
@@ -318,6 +381,7 @@ api.add_resource(RefreshToken, '/auth/refresh')
 api.add_resource(Protected, '/protected')
 api.add_resource(UsersList, '/users')
 api.add_resource(UserUpdateDelete, '/users/<int:user_id>')
+api.add_resource(SensorReadings, '/sensorreadings')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)

@@ -15,6 +15,7 @@ class User(db.Model, SerializerMixin):
      created_at = db.Column(db.DateTime, server_default=func.now())
 
      # Relationship to UserNotification
+     notifications = db.relationship('UserNotification', back_populates='user', cascade='all, delete-orphan')
 
     # Password hashing
      def set_password(self, password):

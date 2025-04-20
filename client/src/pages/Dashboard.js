@@ -1,28 +1,39 @@
-import { Link } from 'react-router-dom';
-import '../styles/Dashboard.css';
-import './LatestReadingCard';
+// Dashboard.js
+import React, { useState, useContext } from "react"; // Added useContext import
+import { AuthContext } from "../context/AuthContext";
+import "../styles/Dashboard.css";
+import SensorReadingsDashboard from "./SensorReadingsDashboard"; // Use consistent naming
 
-function Dashboard() {
+const Dashboard = () => {
+  const [activeView, setActiveView] = useState('sensorReadings'); // Default view
+  const { user } = useContext(AuthContext); // Now properly imported
+
+  // Navigation functions
+  const showSensorReadings = () => setActiveView('sensorReadings');
+  // Add more show functions for other views as needed
+
   return (
-    <div className="dashboard-container">
-      <p>Manage your septic tank monitoring</p>
-
-      <div className="dashboard-buttons">
-        <Link to="/login">
-          <button className="dashboard-button">Login</button>
-        </Link>
-        <Link to="/register">
-          <button className="dashboard-button">Register</button>
-        </Link>
-        <Link to="/logout">
-          <button className="dashboard-button">Logout</button>
-        </Link>
-        <Link to="/latestreading">
-          <button className="dashboard-button">LatestReadingCard</button>
-        </Link>
+    <div className="dashboard">
+      <h1>Welcome to Your Dashboard, {user?.email}!</h1>
+      
+      {/* Navigation Menu */}
+      <nav className="dashboard-nav">
+        <button 
+          onClick={showSensorReadings}
+          className={activeView === 'sensorReadings' ? 'active' : ''}
+        >
+          Sensor Readings
+        </button>
+        {/* Add more navigation buttons for other views */}
+      </nav>
+      
+      {/* Content Area */}
+      <div className="dashboard-content">
+        {activeView === 'sensorReadings' && <SensorReadingsDashboard />}
+        {/* Add more views here as needed */}
       </div>
     </div>
   );
-}
+};
 
 export default Dashboard;

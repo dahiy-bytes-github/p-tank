@@ -1,4 +1,3 @@
-// src/components/Navbar.js
 import React, { useContext } from "react";
 import { NavLink } from "react-router-dom";
 import Logo from "./Logo";
@@ -18,6 +17,16 @@ const Navbar = () => {
           </NavLink>
         </li>
 
+        {/* Dashboard (visible to all logged-in users) */}
+        {user && (
+          <li>
+            <NavLink to="/dashboard" className={({ isActive }) => (isActive ? "active" : "")}>
+              Dashboard
+            </NavLink>
+          </li>
+        )}
+
+        {/* User Management (Admin only) */}
         {user?.role === "Admin" && (
           <li>
             <NavLink to="/usermanagement" className={({ isActive }) => (isActive ? "active" : "")}>
@@ -26,6 +35,7 @@ const Navbar = () => {
           </li>
         )}
 
+        {/* Logout (visible to all logged-in users) */}
         {user && (
           <li>
             <NavLink to="/logout" className={({ isActive }) => (isActive ? "active" : "")}>

@@ -1,8 +1,7 @@
-// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
 import Home from './pages/Home';
+import Dashboard from './pages/Dashboard'; // Add this import
 import Logout from './pages/Logout';
 import UserManagement from './pages/UserManagement';
 import Navbar from './components/Navbar';
@@ -15,6 +14,7 @@ function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} /> {/* Add this route */}
           <Route path="/logout" element={<Logout />} />
           <Route path="/usermanagement" element={<UserManagement />} />
         </Routes>

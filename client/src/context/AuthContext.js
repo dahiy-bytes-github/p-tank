@@ -1,4 +1,3 @@
-// src/context/AuthContext.js
 import React, { createContext, useState } from 'react';
 
 export const AuthContext = createContext();
@@ -14,11 +13,27 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const logout = async () => {
+    const token = localStorage.getItem('access_token');
+
+    // Clear storage FIRST
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    setUser(null);
+
+    // Attempt server logout with token (if exists)
+    if (token) {
+      try {
+        await fetch('http://localhost:5555/auth/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: 'include'
+        });
+      } catch (err) {
+        console.warn('Background logout failed:', err);
+      }
+    }
   };
 
   return (
