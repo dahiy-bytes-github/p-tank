@@ -1,7 +1,8 @@
 // src/pages/Register.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/Register.css"; // Assuming shared styles
+import { validateEmail } from "../utils"; // New import
+import "../styles/Register.css";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,15 +11,29 @@ const Register = () => {
     password: "",
   });
   const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState(""); // New state for email validation
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    // Validate email in real-time
+    if (name === "email" && value) {
+      setEmailError(validateEmail(value) ? "" : "Invalid email format");
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setEmailError("");
+
+    // Frontend validation
+    if (!validateEmail(formData.email)) {
+      setEmailError("Please enter a valid email address");
+      return;
+    }
 
     try {
       const response = await fetch("http://localhost:5555/auth/register", {
@@ -30,7 +45,7 @@ const Register = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Registration failed");
 
-      navigate("/login"); // optional: navigate to dashboard or auto-login
+      navigate("/login");
     } catch (err) {
       setError(err.message);
     }
@@ -57,22 +72,27 @@ const Register = () => {
             className="input-field"
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="example@email.com"
             value={formData.email}
             onChange={handleChange}
+            onBlur={() => {
+              if (formData.email) setEmailError(validateEmail(formData.email) ? "" : "Invalid email format");
+            }}
             required
           />
+          {emailError && <div className="error-message">{emailError}</div>}
         </div>
         <div className="input-group">
           <input
             className="input-field"
             type="password"
             name="password"
-            placeholder="Password"
+            placeholder="Password (min 8 characters)"
             value={formData.password}
             onChange={handleChange}
             required
             minLength="8"
+            title="Password must be at least 8 characters"
           />
         </div>
         <button className="login-button" type="submit">
