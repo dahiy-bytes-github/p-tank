@@ -1,0 +1,19 @@
+/* src/styles/NotificationList.css */
+.notification-list-container {
+    padding: 20px;
+  }
+  
+  .notification-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 5px;
+  }
+  
+  .notification-item.read {
+    background-color: #f0f0f0;
+  }
+  
+  .notification-item.unread {
+    background-color: #ffffff;
+  }
+  

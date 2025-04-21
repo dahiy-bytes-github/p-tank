@@ -1,27 +1,22 @@
-/* Dashboard.css */
+/* src/styles/Dashboard.css */
 .dashboard {
   padding: 20px;
 }
 
 .dashboard-nav {
-  margin: 20px 0;
   display: flex;
-  gap: 10px;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-.dashboard-nav button {
+.nav-link {
+  text-decoration: none;
+  color: blue; /* Or your preferred color */
   padding: 8px 16px;
-  background: #f0f0f0;
-  border: none;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  cursor: pointer;
 }
 
-.dashboard-nav button.active {
-  background: #007bff;
-  color: white;
-}
-
-.dashboard-content {
-  margin-top: 20px;
+.nav-link:hover {
+  background-color: #f0f0f0;
 }

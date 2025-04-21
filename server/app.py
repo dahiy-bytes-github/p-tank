@@ -13,13 +13,14 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 from datetime import timedelta
+from sqlalchemy.sql import func
 from models import User
 from models import SensorReading
 from models import Notification
 from models import UserNotification
 
 from database import db
-from utils import is_valid_email
+from utils import is_valid_email, send_email_alert, check_tank_conditions
 
 # Load environment variables
 load_dotenv()
@@ -31,7 +32,7 @@ CORS(
     app,
     origins=["http://localhost:3000"],
     supports_credentials=True,
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods=["GET", "POST", "PUT","PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"]
 )
 
@@ -49,6 +50,8 @@ app.config['JWT_TOKEN_LOCATION'] = ['headers', 'query_string']
 app.config['JWT_QUERY_STRING_NAME'] = 'jwt'  # optional, default is already 'jwt'
 
 app.json.compact = False
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 
 
 # Initialize extensions
@@ -201,7 +204,6 @@ class RefreshToken(Resource):
             }
         )
         return {"access_token": new_token}, 200
-
 
 class Protected(Resource):
     @jwt_required()
@@ -373,6 +375,142 @@ class SensorReadings(Resource):
             }
         }, 200
 
+class CreateSensorReading(Resource):
+    def post(self):
+        data = request.get_json()
+
+        # Create new sensor reading
+        new_reading = SensorReading(
+            temp=data.get('temp'),
+            ph=data.get('ph'),
+            tank_level_per=data.get('tank_level_per'),
+            predicted_full=data.get('predicted_full', False)
+        )
+
+        db.session.add(new_reading)
+        db.session.commit()
+
+        # Check conditions and create notifications if needed
+        check_tank_conditions(new_reading, app, db)
+
+        return {
+            "message": "Sensor reading created successfully",
+            "reading": {
+                "id": new_reading.id,
+                "timestamp": new_reading.timestamp.isoformat(),
+                "temp": new_reading.temp,
+                "ph": new_reading.ph,
+                "tank_level_per": new_reading.tank_level_per,
+                "predicted_full": new_reading.predicted_full
+            }
+        }, 201
+class UserNotifications(Resource):
+    @jwt_required()
+    def get(self):
+        # Get current user identity
+        user_id = get_jwt_identity()
+        user = User.query.get(int(user_id))
+        
+        if not user:
+            return {"error": "User not found"}, 404
+        
+        # Query all notifications for this user
+        user_notifications = (
+            UserNotification.query
+            .join(Notification)
+            .filter(UserNotification.user_id == user.id)
+            .order_by(Notification.created_at.desc())
+            .all()
+        )
+        
+        # Format the response
+        notifications_data = []
+        for un in user_notifications:
+            notification = un.notification
+            notifications_data.append({
+                "id": un.id,
+                "notification_id": notification.id,
+                "message": notification.message,
+                "severity": notification.severity,
+                "notification_type": notification.notification_type,
+                "created_at": notification.created_at.isoformat(),
+                "is_read": un.is_read,
+                "read_at": un.read_at.isoformat() if un.read_at else None
+            })
+        
+        return {
+            "message": "Notifications retrieved successfully",
+            "notifications": notifications_data,
+            "count": len(notifications_data)
+        }, 200
+
+class MarkNotificationRead(Resource):
+    @jwt_required()
+    def patch(self, notification_id):
+        # Get current user identity
+        user_id = get_jwt_identity()
+        user = User.query.get(int(user_id))
+        
+        if not user:
+            return {"error": "User not found"}, 404
+        
+        # Query the user notification
+        user_notification = UserNotification.query.filter_by(
+            id=notification_id,
+            user_id=user.id
+        ).first()
+        
+        if not user_notification:
+            return {"error": "Notification not found"}, 404
+        
+        # Mark as read
+        if not user_notification.is_read:
+            user_notification.is_read = True
+            user_notification.read_at = func.now()
+            db.session.commit()
+        
+        return {"message": "Notification marked as read"}, 200
+
+class UnreadNotificationsCount(Resource):
+    @jwt_required()
+    def get(self):
+        # Get current user identity
+        user_id = get_jwt_identity()
+        user = User.query.get(int(user_id))
+        
+        if not user:
+            return {"error": "User not found"}, 404
+        
+        # Count unread notifications
+        unread_count = (
+            UserNotification.query
+            .filter_by(user_id=user.id, is_read=False)
+            .count()
+        )
+        
+        return {
+            "message": "Unread notifications count retrieved",
+            "unread_count": unread_count
+        }, 200
+
+class ToggleEmailAlerts(Resource):
+    @jwt_required()
+    def patch(self):
+        # Get current user identity
+        user_id = get_jwt_identity()
+        user = User.query.get(int(user_id))
+        
+        if not user:
+            return {"error": "User not found"}, 404
+        
+        # Toggle the setting
+        user.receive_email_alerts = not user.receive_email_alerts
+        db.session.commit()
+        
+        return {
+            "message": f"Email alerts {'enabled' if user.receive_email_alerts else 'disabled'}",
+            "receive_email_alerts": user.receive_email_alerts
+        }, 200
 # Add resources
 api.add_resource(Register, '/auth/register')
 api.add_resource(Login, '/auth/login')
@@ -382,6 +520,11 @@ api.add_resource(Protected, '/protected')
 api.add_resource(UsersList, '/users')
 api.add_resource(UserUpdateDelete, '/users/<int:user_id>')
 api.add_resource(SensorReadings, '/sensorreadings')
+api.add_resource(CreateSensorReading, '/sensor-readings')
+api.add_resource(UserNotifications, '/notifications')
+api.add_resource(MarkNotificationRead, '/notifications/<int:notification_id>/read')
+api.add_resource(UnreadNotificationsCount, '/notifications/unread-count')
+api.add_resource(ToggleEmailAlerts, '/user/toggle-email-alerts')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
