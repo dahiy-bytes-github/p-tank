@@ -12,6 +12,11 @@ flask-restful = "*"
 flask-cors = "*"
 python-dotenv = "*"
 flask-jwt-extended = "*"
+requests = "*"
+scikit-learn = "*"
+joblib = "*"
+pandas = "*"
+flask-mail = "*"
 
 [dev-packages]
 

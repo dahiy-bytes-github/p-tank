@@ -10,7 +10,6 @@ class SensorReading(db.Model, SerializerMixin):
     temp = db.Column(db.Float, nullable=False)
     ph = db.Column(db.Float, nullable=False)
     tank_level_per = db.Column(db.Float, nullable=False)  # Percentage (0-100)
-    predicted_full = db.Column(db.Boolean, default=False, nullable=False)  # ML-predicted
 
     def __repr__(self):
         return f"<SensorReading id={self.id}, timestamp={self.timestamp}, temp={self.temp}, ph={self.ph}>"

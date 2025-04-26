@@ -20,8 +20,9 @@ from models import Notification
 from models import UserNotification
 
 from database import db
-from utils import is_valid_email, send_email_alert, check_tank_conditions
-
+import random 
+from datetime import datetime, timedelta
+from utils import is_valid_email, send_email_alert, check_tank_conditions, init_mail
 # Load environment variables
 load_dotenv()
 
@@ -48,10 +49,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # ✅ Allow JWTs via headers and query string
 app.config['JWT_TOKEN_LOCATION'] = ['headers', 'query_string']
 app.config['JWT_QUERY_STRING_NAME'] = 'jwt'  # optional, default is already 'jwt'
-
 app.json.compact = False
+
+# Email Configuration
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com') #set default value
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 465)) #set default value and convert to int
+app.config['MAIL_USE_SSL'] = True # force to True, since we are using 465
+app.config['MAIL_USE_TLS'] = False # force to False, since we are using 465
 
 
 # Initialize extensions
@@ -59,6 +65,10 @@ migrate = Migrate(app, db)
 db.init_app(app)
 api = Api(app)
 jwt = JWTManager(app)
+
+# Initialize Flask-Mail
+mail = init_mail(app)  # Initialize flask-mail here
+
 
 @jwt.unauthorized_loader
 def missing_token_callback(error):
@@ -327,7 +337,8 @@ class SensorReadings(Resource):
             'ph': request.args.get('ph', type=float),
             'tank_level_min': request.args.get('tank_level_min', type=float),
             'tank_level_max': request.args.get('tank_level_max', type=float),
-            'predicted_full': request.args.get('predicted_full', type=lambda x: x.lower() == 'true'),
+            # REMOVE predicted_full
+            #'predicted_full': request.args.get('predicted_full', type=lambda x: x.lower() == 'true'),
             'start_date': request.args.get('start_date'),
             'end_date': request.args.get('end_date')
         }
@@ -338,35 +349,45 @@ class SensorReadings(Resource):
         # Apply filters
         if filters['temp']:
             query = query.filter(SensorReading.temp == filters['temp'])
-        
+
         if filters['ph']:
             query = query.filter(SensorReading.ph == filters['ph'])
-        
+
         if filters['tank_level_min']:
             query = query.filter(SensorReading.tank_level_per >= filters['tank_level_min'])
-        
+
         if filters['tank_level_max']:
             query = query.filter(SensorReading.tank_level_per <= filters['tank_level_max'])
-        
-        if filters['predicted_full'] is not None:  # Explicit check for boolean
-            query = query.filter(SensorReading.predicted_full == filters['predicted_full'])
-        
+
+        # REMOVE predicted_full filter condition
+        #if filters['predicted_full'] is not None:  # Explicit check for boolean
+        #    query = query.filter(SensorReading.predicted_full == filters['predicted_full'])
+
         if filters['start_date']:
             query = query.filter(SensorReading.timestamp >= filters['start_date'])
-        
+
         if filters['end_date']:
             query = query.filter(SensorReading.timestamp <= filters['end_date'])
 
         # Paginate and return
         page = request.args.get('page', 1, type=int)
         limit = min(request.args.get('limit', 10, type=int), 100)
-        
+
         readings = query.order_by(SensorReading.timestamp.desc()).paginate(
             page=page, per_page=limit, error_out=False
         )
 
         return {
-            "readings": [reading.to_dict() for reading in readings.items],
+            "readings": [
+                {
+                    "id": reading.id,
+                    "timestamp": reading.timestamp.isoformat(),
+                    "temp": reading.temp,
+                    "ph": reading.ph,
+                    "tank_level_per": reading.tank_level_per,
+                    # REMOVE predicted_full from output
+                    #"predicted_full": reading.predicted_full
+                } for reading in readings.items],
             "pagination": {
                 "page": page,
                 "limit": limit,
@@ -379,19 +400,16 @@ class CreateSensorReading(Resource):
     def post(self):
         data = request.get_json()
 
-        # Create new sensor reading
         new_reading = SensorReading(
             temp=data.get('temp'),
             ph=data.get('ph'),
-            tank_level_per=data.get('tank_level_per'),
-            predicted_full=data.get('predicted_full', False)
+            tank_level_per=data.get('tank_level_per')
         )
 
         db.session.add(new_reading)
         db.session.commit()
 
-        # Check conditions and create notifications if needed
-        check_tank_conditions(new_reading, app, db)
+        check_tank_conditions(new_reading, app, db)  # Call check_tank_conditions
 
         return {
             "message": "Sensor reading created successfully",
@@ -401,9 +419,12 @@ class CreateSensorReading(Resource):
                 "temp": new_reading.temp,
                 "ph": new_reading.ph,
                 "tank_level_per": new_reading.tank_level_per,
-                "predicted_full": new_reading.predicted_full
+                # REMOVE predicted_full
+                # "predicted_full": new_reading.predicted_full
             }
         }, 201
+
+
 class UserNotifications(Resource):
     @jwt_required()
     def get(self):
@@ -511,6 +532,23 @@ class ToggleEmailAlerts(Resource):
             "message": f"Email alerts {'enabled' if user.receive_email_alerts else 'disabled'}",
             "receive_email_alerts": user.receive_email_alerts
         }, 200
+class PredictTankFull(Resource):
+    def get(self):
+        # Simulate a prediction
+        current_level = round(random.uniform(60, 95), 2)  # Random tank level
+        fill_rate_per_hour = round(random.uniform(0.1, 0.5), 2)  # Random fill rate
+
+        # Calculate time until full and estimated full time
+        hours_until_full = (100 - current_level) / fill_rate_per_hour
+        estimated_full_time = datetime.now() + timedelta(hours=hours_until_full)
+
+        return {
+            "current_level": current_level,
+            "fill_rate_per_hour": fill_rate_per_hour,
+            "hours_until_full": hours_until_full,
+            "estimated_full_time": estimated_full_time.isoformat(),
+            "message": "Simulated prediction"
+        }, 200
 # Add resources
 api.add_resource(Register, '/auth/register')
 api.add_resource(Login, '/auth/login')
@@ -525,6 +563,7 @@ api.add_resource(UserNotifications, '/notifications')
 api.add_resource(MarkNotificationRead, '/notifications/<int:notification_id>/read')
 api.add_resource(UnreadNotificationsCount, '/notifications/unread-count')
 api.add_resource(ToggleEmailAlerts, '/user/toggle-email-alerts')
+api.add_resource(PredictTankFull, '/predict-tank-full')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
