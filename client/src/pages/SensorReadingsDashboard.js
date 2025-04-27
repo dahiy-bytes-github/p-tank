@@ -14,7 +14,6 @@ const SensorReadingsDashboard = () => {
     ph: '',
     tank_level_min: '',
     tank_level_max: '',
-    predicted_full: false,
     start_date: '',
     end_date: ''
   });
@@ -33,8 +32,8 @@ const SensorReadingsDashboard = () => {
       // Add filters only when applied
       if (filtersApplied) {
         Object.entries(filters).forEach(([key, value]) => {
-          if (value !== '' && value !== false) {
-            paramsObj[key] = key === 'predicted_full' ? (value ? 'true' : 'false') : value;
+          if (value !== '') {
+            paramsObj[key] = value;
           }
         });
       }
@@ -63,10 +62,10 @@ const SensorReadingsDashboard = () => {
   }, [pagination.page, pagination.limit, filtersApplied]);
 
   const handleFilterChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFilters(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     }));
   };
 
@@ -87,7 +86,6 @@ const SensorReadingsDashboard = () => {
       ph: '',
       tank_level_min: '',
       tank_level_max: '',
-      predicted_full: false,
       start_date: '',
       end_date: ''
     });
@@ -96,15 +94,14 @@ const SensorReadingsDashboard = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ['Timestamp', 'Temperature (°C)', 'pH Level', 'Tank Level (%)', 'Predicted Full'];
+    const headers = ['Timestamp', 'Temperature (°C)', 'pH Level', 'Tank Level (%)'];
     const csvContent = [
       headers.join(','),
       ...readings.map(r => [
         `"${new Date(r.timestamp).toLocaleString()}"`,
         r.temp,
         r.ph,
-        r.tank_level_per,
-        r.predicted_full ? 'Yes' : 'No'
+        r.tank_level_per
       ].join(','))
     ].join('\n');
 
@@ -137,7 +134,7 @@ const SensorReadingsDashboard = () => {
               step="0.1"
             />
           </div>
-          
+
           <div className="sr-filter-group">
             <label className="sr-label">pH Level</label>
             <input
@@ -174,17 +171,6 @@ const SensorReadingsDashboard = () => {
               min="0"
               max="100"
             />
-          </div>
-
-          <div className="sr-filter-group checkbox-group">
-            <input
-              type="checkbox"
-              name="predicted_full"
-              checked={filters.predicted_full}
-              onChange={handleFilterChange}
-              className="sr-checkbox"
-            />
-            <label className="sr-label">Predicted Full</label>
           </div>
 
           <div className="sr-filter-group">
@@ -238,7 +224,6 @@ const SensorReadingsDashboard = () => {
                 <th>Temperature (°C)</th>
                 <th>pH Level</th>
                 <th>Tank Level (%)</th>
-                <th>Predicted Full</th>
               </tr>
             </thead>
             <tbody>
@@ -249,7 +234,6 @@ const SensorReadingsDashboard = () => {
                     <td className="sr-table-cell">{reading.temp}</td>
                     <td className="sr-table-cell">{reading.ph}</td>
                     <td className="sr-table-cell">{reading.tank_level_per}</td>
-                    <td className="sr-table-cell">{reading.predicted_full ? 'Yes' : 'No'}</td>
                   </tr>
                 ))
               ) : (

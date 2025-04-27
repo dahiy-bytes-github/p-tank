@@ -1,4 +1,3 @@
-// src/components/Navbar.js
 import React, { useContext } from "react";
 import { NavLink } from "react-router-dom";
 import Logo from "./Logo";
@@ -28,6 +27,11 @@ const Navbar = () => {
             <li>
               <NavLink to="/notifications" className={({ isActive }) => (isActive ? "active" : "")}>
                 Notifications
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/prediction" className={({ isActive }) => (isActive ? "active" : "")}>
+                Tank Predictions
               </NavLink>
             </li>
             <li>

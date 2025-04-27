@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_restful import Api, Resource
+from flask_restful import Api, Resource, reqparse
 from flask_jwt_extended import (
     JWTManager,
     create_access_token,
@@ -23,6 +23,8 @@ from database import db
 import random 
 from datetime import datetime, timedelta
 from utils import is_valid_email, send_email_alert, check_tank_conditions, init_mail
+from predictor import TankPredictor
+
 # Load environment variables
 load_dotenv()
 
@@ -68,6 +70,7 @@ jwt = JWTManager(app)
 
 # Initialize Flask-Mail
 mail = init_mail(app)  # Initialize flask-mail here
+predictor = TankPredictor()
 
 
 @jwt.unauthorized_loader
@@ -532,23 +535,45 @@ class ToggleEmailAlerts(Resource):
             "message": f"Email alerts {'enabled' if user.receive_email_alerts else 'disabled'}",
             "receive_email_alerts": user.receive_email_alerts
         }, 200
-class PredictTankFull(Resource):
+class PredictionResource(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('sensor_cm', type=float, required=True,
+                              help='Current sensor reading in cm (22-27)')
+        
     def get(self):
-        # Simulate a prediction
-        current_level = round(random.uniform(60, 95), 2)  # Random tank level
-        fill_rate_per_hour = round(random.uniform(0.1, 0.5), 2)  # Random fill rate
+        """GET endpoint for testing with query parameters"""
+        args = self.parser.parse_args()
+        return self._make_prediction(args['sensor_cm'])
+    
+    def post(self):
+        """POST endpoint for regular JSON payloads"""
+        data = request.get_json()
+        if not data or 'sensor_cm' not in data:
+            return {"error": "JSON body with sensor_cm required"}, 400
+        return self._make_prediction(data['sensor_cm'])
+    
+    def _make_prediction(self, sensor_cm):
+        """Shared prediction logic"""
+        try:
+            if not 22.0 <= sensor_cm <= 27.0:
+                return {"error": "Invalid reading (must be 22-27cm)"}, 400
+            
+            current_level = predictor.calculate_level(sensor_cm)
+            result = predictor.predict_critical(sensor_cm)
+            
+            return {
+                "status": "success",
+                "data": {
+                    "current_level": current_level,
+                    "prediction": result,
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "model_version": "1.1"
+                }
+            }
+        except Exception as e:
+            return {"error": str(e)}, 500
 
-        # Calculate time until full and estimated full time
-        hours_until_full = (100 - current_level) / fill_rate_per_hour
-        estimated_full_time = datetime.now() + timedelta(hours=hours_until_full)
-
-        return {
-            "current_level": current_level,
-            "fill_rate_per_hour": fill_rate_per_hour,
-            "hours_until_full": hours_until_full,
-            "estimated_full_time": estimated_full_time.isoformat(),
-            "message": "Simulated prediction"
-        }, 200
 # Add resources
 api.add_resource(Register, '/auth/register')
 api.add_resource(Login, '/auth/login')
@@ -563,7 +588,7 @@ api.add_resource(UserNotifications, '/notifications')
 api.add_resource(MarkNotificationRead, '/notifications/<int:notification_id>/read')
 api.add_resource(UnreadNotificationsCount, '/notifications/unread-count')
 api.add_resource(ToggleEmailAlerts, '/user/toggle-email-alerts')
-api.add_resource(PredictTankFull, '/predict-tank-full')
+api.add_resource(PredictionResource, '/predict')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)

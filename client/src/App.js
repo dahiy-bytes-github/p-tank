@@ -9,6 +9,7 @@ import NotificationList from './pages/NotificationList';
 import UserSettings from './pages/UserSettings';
 import Navbar from './components/Navbar';
 import { AuthProvider } from './context/AuthContext';
+import PredictionCard from './pages/PredictionCard';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/settings" element={<UserSettings />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/usermanagement" element={<UserManagement />} />
+          <Route path="/prediction" element={<PredictionCard />} />
         </Routes>
       </Router>
     </AuthProvider>
