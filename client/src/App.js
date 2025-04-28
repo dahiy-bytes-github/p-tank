@@ -10,6 +10,7 @@ import UserSettings from './pages/UserSettings';
 import Navbar from './components/Navbar';
 import { AuthProvider } from './context/AuthContext';
 import PredictionCard from './pages/PredictionCard';
+import GetAllUsersNotifications from './pages/GetAllUsersNotifications'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/logout" element={<Logout />} />
           <Route path="/usermanagement" element={<UserManagement />} />
           <Route path="/prediction" element={<PredictionCard />} />
+          <Route path="/allusersnotifications" element={<GetAllUsersNotifications />} />
         </Routes>
       </Router>
     </AuthProvider>

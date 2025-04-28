@@ -1,13 +1,12 @@
-/* src/components/Logo.css */
 .logo-container {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    margin: 20px;
-  }
-  
-  .logo {
-    width: 100px;
-    height: auto;
-  }
-  
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 75px; /* Bigger now! */
+  width: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-right: 20px; /* Space between logo and menu */
+}

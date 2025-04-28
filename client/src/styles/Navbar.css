@@ -1,9 +1,11 @@
+
 .navbar {
   display: flex;
   align-items: center; 
   justify-content: space-between; 
   background: linear-gradient(to bottom right, #6b6760, #5c5342);
   padding: 10px 20px;
+  height: 60px; /* Added fixed height for consistent alignment */
 }
 
 .navbar ul {
@@ -11,11 +13,16 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  align-items: center; /* Ensure vertical centering */
+  height: 100%; /* Full height of navbar */
 }
 
 .navbar li {
   margin-right: 30px;
   position: relative;
+  display: flex; /* Make li a flex container */
+  align-items: center; /* Vertically center content */
+  height: 100%; /* Match navbar height */
 }
 
 .navbar li:last-child {
@@ -28,23 +35,37 @@
   font-size: 16px;
   display: flex;
   align-items: center;
+  justify-content: center; /* Center horizontally */
   gap: 8px;
   transition: all 0.3s ease;
+  height: 100%; /* Full height for vertical centering */
 }
 
-.navbar .active {
-  font-weight: bold;
-  color: #07b966;
+.nav-text {
+  display: flex;
+  align-items: center;
 }
 
-.navbar a:hover {
-  color: #f39c12 !important;
+.notification-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
 }
 
-/* Notification Badge Styles */
+.notification-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
 .notification-item .notification-badge-container {
   position: relative;
   display: inline-flex;
+  align-self: center;
+  line-height: 1;
 }
 
 .notification-item .bell-icon {
@@ -73,6 +94,7 @@
   font-size: 10px;
   font-weight: bold;
   animation: pulse 2s infinite;
+  transform: translate(0, 0); /* Ensure consistent positioning */
 }
 
 .notification-item .badge-count.double-digit {
@@ -118,4 +140,14 @@
   justify-content: center;
   font-weight: bold;
   font-size: 8px;
+}
+
+/* Active link style */
+.navbar .active {
+  font-weight: bold;
+  color: #07b966;
+}
+
+.navbar a:hover {
+  color: #f39c12 !important;
 }

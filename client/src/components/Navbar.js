@@ -27,8 +27,10 @@ const Navbar = () => {
             </li>
             <li className="notification-item">
               <NavLink to="/notifications" className={({ isActive }) => (isActive ? "active" : "")}>
-                Notifications
-                <NotificationBadge />
+                <span className="nav-text">Notifications</span>
+                <span className="notification-wrapper">
+                  <NotificationBadge />
+                </span>
               </NavLink>
             </li>
             <li>
@@ -48,6 +50,13 @@ const Navbar = () => {
           <li>
             <NavLink to="/usermanagement" className={({ isActive }) => (isActive ? "active" : "")}>
               User Management
+            </NavLink>
+          </li>
+        )}
+        {user?.role === "Admin" && (
+          <li>
+            <NavLink to="/allusersnotifications" className={({ isActive }) => (isActive ? "active" : "")}>
+              Users Notifications
             </NavLink>
           </li>
         )}

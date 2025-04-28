@@ -652,6 +652,45 @@ class UserNotificationsWithStatus(Resource):
             
         except Exception as e:
             return {"error": str(e)}, 500
+        
+class AllNotificationsWithStatus(Resource):
+    @jwt_required()
+    def get(self):
+        # Get current user and check admin privileges
+        current_user_id = get_jwt_identity()
+        current_user = User.query.get(int(current_user_id))
+        if not current_user or current_user.role != 'Admin':
+            return {"error": "Admin privileges required"}, 403
+
+        # Query all UserNotifications, joining with User and Notification
+        all_user_notifications = (
+            db.session.query(UserNotification, User, Notification)
+            .join(User, UserNotification.user_id == User.id)
+            .join(Notification, UserNotification.notification_id == Notification.id)
+            .order_by(Notification.created_at.desc())
+            .all()
+        )
+
+        # Format response
+        notifications_data = []
+        for un, user, notification in all_user_notifications:
+            notifications_data.append({
+                "user_id": user.id,
+                "user_email": user.email,
+                "notification_id": notification.id,
+                "message": notification.message,
+                "severity": notification.severity,
+                "notification_type": notification.notification_type,
+                "created_at": notification.created_at.isoformat(),
+                "is_read": un.is_read,
+                "read_at": un.read_at.isoformat() if un.read_at else None
+            })
+
+        return {
+            "message": "All notifications with user read status retrieved successfully",
+            "notifications": notifications_data,
+            "count": len(notifications_data)
+        }, 200
 class PredictionResource(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
@@ -707,6 +746,7 @@ api.add_resource(UnreadNotificationsCount, '/notifications/unread-count')
 api.add_resource(MarkAllNotificationsRead, '/notifications/read-all')
 api.add_resource(UserNotificationsWithStatus, '/user/notifications/status')
 api.add_resource(UserEmailAlerts, '/user/email-alerts')
+api.add_resource(AllNotificationsWithStatus, '/notifications/all')
 api.add_resource(PredictionResource, '/predict')
 
 if __name__ == '__main__':
