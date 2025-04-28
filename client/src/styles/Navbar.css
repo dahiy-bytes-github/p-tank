@@ -1,11 +1,11 @@
-
 .navbar {
   display: flex;
-  align-items: center; 
-  justify-content: space-between; 
+  align-items: center;
+  justify-content: space-between;
   background: linear-gradient(to bottom right, #6b6760, #5c5342);
-  padding: 10px 20px;
-  height: 60px; /* Added fixed height for consistent alignment */
+  padding: 0 20px;
+  height: 65px; /* Increased from 60px to 65px */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .navbar ul {
@@ -13,45 +13,38 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  align-items: center; /* Ensure vertical centering */
-  height: 100%; /* Full height of navbar */
+  align-items: center;
+  height: 100%;
 }
 
 .navbar li {
-  margin-right: 30px;
+  margin-right: 20px;
   position: relative;
-  display: flex; /* Make li a flex container */
-  align-items: center; /* Vertically center content */
-  height: 100%; /* Match navbar height */
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 .navbar li:last-child {
-  margin-right: 0; 
+  margin-right: 0;
 }
 
 .navbar a {
   color: #fff;
   text-decoration: none;
-  font-size: 16px;
+  font-size: 15px;
   display: flex;
   align-items: center;
-  justify-content: center; /* Center horizontally */
-  gap: 8px;
-  transition: all 0.3s ease;
-  height: 100%; /* Full height for vertical centering */
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  height: 100%;
+  padding: 0 12px;
 }
 
 .nav-text {
   display: flex;
   align-items: center;
-}
-
-.notification-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  position: relative;
 }
 
 .notification-item {
@@ -69,10 +62,10 @@
 }
 
 .notification-item .bell-icon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   fill: currentColor;
-  transition: fill 0.3s ease;
+  transition: fill 0.2s ease;
 }
 
 .notification-item .active .bell-icon {
@@ -81,73 +74,109 @@
 
 .notification-item .badge-count {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -6px;
+  right: -6px;
   background-color: #e74c3c;
   color: white;
   border-radius: 50%;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: bold;
   animation: pulse 2s infinite;
-  transform: translate(0, 0); /* Ensure consistent positioning */
 }
 
 .notification-item .badge-count.double-digit {
   width: auto;
-  min-width: 18px;
-  padding: 0 4px;
-  border-radius: 9px;
-}
-
-.notification-item:hover .badge-count {
-  background-color: #c0392b;
+  min-width: 16px;
+  padding: 0 3px;
+  border-radius: 8px;
 }
 
 @keyframes pulse {
   0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
 
-/* Loading State */
-.notification-item .loading-dot {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 8px;
-  height: 8px;
-  background-color: #95a5a6;
-  border-radius: 50%;
-}
-
-/* Error State */
-.notification-item .notification-error {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 12px;
-  height: 12px;
-  background-color: #fde8e8;
-  color: #e74c3c;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 8px;
-}
-
-/* Active link style */
 .navbar .active {
-  font-weight: bold;
+  font-weight: 600;
   color: #07b966;
 }
 
 .navbar a:hover {
-  color: #f39c12 !important;
+  color: #f39c12;
+}
+
+/* -------------------- */
+/* Admin Dropdown Styles */
+/* -------------------- */
+.dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  height: 100%;
+}
+
+.dropdown-toggle {
+  color: #fff;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  padding: 0 12px;
+  transition: all 0.2s ease;
+}
+
+.dropdown-toggle:hover {
+  color: #f8c537;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #7a7260; /* Contrasting color for admin dropdown */
+  border-radius: 4px;
+  margin-top: 0;
+  padding: 5px 0;
+  min-width: 160px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-menu li {
+  margin: 0;
+  padding: 0;
+  height: auto;
+}
+
+.dropdown-menu a {
+  padding: 8px 15px;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  display: block;
+  color: #f0f0f0;
+  height: auto;
+  margin: 0;
+  background: transparent !important; /* Removed box backgrounds */
+}
+
+.dropdown-menu a:hover {
+  color: #f8c537 !important;
+  background: transparent !important;
+  text-decoration: underline; /* Added underline instead of background */
+}
+
+.dropdown-menu .active {
+  color: #07b966 !important;
+  background: transparent !important;
+  text-decoration: underline;
 }

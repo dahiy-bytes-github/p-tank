@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { NavLink } from "react-router-dom";
 import Logo from "./Logo";
 import { AuthContext } from "../context/AuthContext";
@@ -7,11 +7,16 @@ import "../styles/Navbar.css";
 
 const Navbar = () => {
   const { user } = useContext(AuthContext);
+  const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
+
+  const toggleAdminDropdown = () => {
+    setAdminDropdownOpen(!adminDropdownOpen);
+  };
 
   return (
     <nav className="navbar">
       <Logo />
-      <ul>
+      <ul className="nav-links">
         <li>
           <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
             Home
@@ -25,14 +30,6 @@ const Navbar = () => {
                 Dashboard
               </NavLink>
             </li>
-            <li className="notification-item">
-              <NavLink to="/notifications" className={({ isActive }) => (isActive ? "active" : "")}>
-                <span className="nav-text">Notifications</span>
-                <span className="notification-wrapper">
-                  <NotificationBadge />
-                </span>
-              </NavLink>
-            </li>
             <li>
               <NavLink to="/prediction" className={({ isActive }) => (isActive ? "active" : "")}>
                 Tank Predictions
@@ -43,30 +40,39 @@ const Navbar = () => {
                 Settings
               </NavLink>
             </li>
+
+            {/* Admin Dropdown */}
+            {user.role === "Admin" && (
+              <li className="dropdown" onMouseEnter={toggleAdminDropdown} onMouseLeave={toggleAdminDropdown}>
+                <span className="dropdown-toggle">Admin ▾</span>
+                {adminDropdownOpen && (
+                  <ul className="dropdown-menu">
+                    <li>
+                      <NavLink to="/usermanagement" className={({ isActive }) => (isActive ? "active" : "")}>
+                        User Management
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink to="/allusersnotifications" className={({ isActive }) => (isActive ? "active" : "")}>
+                        Users Notifications
+                      </NavLink>
+                    </li>
+                  </ul>
+                )}
+              </li>
+            )}
+            <li className="notification-item">
+              <NavLink to="/notifications" className={({ isActive }) => (isActive ? "active" : "")}>
+                <span className="nav-text">Notifications</span>
+                <NotificationBadge />
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/logout" className={({ isActive }) => (isActive ? "active" : "")}>
+                Logout
+              </NavLink>
+            </li>
           </>
-        )}
-
-        {user?.role === "Admin" && (
-          <li>
-            <NavLink to="/usermanagement" className={({ isActive }) => (isActive ? "active" : "")}>
-              User Management
-            </NavLink>
-          </li>
-        )}
-        {user?.role === "Admin" && (
-          <li>
-            <NavLink to="/allusersnotifications" className={({ isActive }) => (isActive ? "active" : "")}>
-              Users Notifications
-            </NavLink>
-          </li>
-        )}
-
-        {user && (
-          <li>
-            <NavLink to="/logout" className={({ isActive }) => (isActive ? "active" : "")}>
-              Logout
-            </NavLink>
-          </li>
         )}
       </ul>
     </nav>

@@ -1,28 +1,81 @@
-/* Account.css */
+/* Home.css */
+.home-container {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+.welcome-section {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(107, 103, 96, 0.1) 0%, rgba(92, 83, 66, 0.1) 100%);
+  border-radius: 10px;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.welcome-title {
+  font-size: 2.2rem;
+  color: #5c5342;
+  margin-bottom: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.welcome-text {
+  font-size: 1.1rem;
+  color: #6b6760;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.divider {
+  height: 2px;
+  background: linear-gradient(to right, transparent, #5c5342, transparent);
+  width: 60%;
+  margin: 25px auto;
+}
+
 .account-container {
   max-width: 500px;
-  margin: 50px auto;
-  padding: 20px;
+  margin: 0 auto;
+  padding: 30px;
   border: 1px solid #ddd;
   border-radius: 10px;
-  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: white;
+  animation: slideUp 0.6s ease-out;
 }
 
 .toggle-text {
   margin-top: 20px;
-  font-size: 14px;
+  font-size: 15px;
+  color: #6b6760;
 }
 
 .toggle-link {
-  color: #007bff;
+  color: #5c5342;
   background: none;
   border: none;
   text-decoration: underline;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .toggle-link:hover {
   text-decoration: none;
-  color: #0056b3;
+  color: #3a3325;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
