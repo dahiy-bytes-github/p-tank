@@ -24,6 +24,8 @@ import random
 from datetime import datetime, timedelta
 from utils import is_valid_email, send_email_alert, check_tank_conditions, init_mail
 from predictor import TankPredictor
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import desc
 
 # Load environment variables
 load_dotenv()
@@ -295,7 +297,9 @@ class UserUpdateDelete(Resource):
             if User.query.filter(User.email == email, User.id != user.id).first():
                 return {"error": "Email already in use"}, 409
             user.email = email
-        if role and role in ['Admin', 'User', 'Mentor', 'Mentee']:
+        if role:
+            if role not in ['Admin', 'Normal']:
+                return {"error": "Invalid role. Must be 'Admin' or 'Normal'"}, 400
             user.role = role
         if password:
             user.set_password(password)
@@ -516,8 +520,7 @@ class UnreadNotificationsCount(Resource):
             "message": "Unread notifications count retrieved",
             "unread_count": unread_count
         }, 200
-
-class ToggleEmailAlerts(Resource):
+class MarkAllNotificationsRead(Resource):
     @jwt_required()
     def patch(self):
         # Get current user identity
@@ -527,7 +530,53 @@ class ToggleEmailAlerts(Resource):
         if not user:
             return {"error": "User not found"}, 404
         
-        # Toggle the setting
+        try:
+            # Get current timestamp
+            current_time = func.now()
+            
+            # Update all unread notifications for this user
+            updated = UserNotification.query.filter_by(
+                user_id=user.id,
+                is_read=False
+            ).update({
+                'is_read': True,
+                'read_at': current_time
+            })
+            
+            db.session.commit()
+            
+            return {
+                "success": True,
+                "message": f"Marked {updated} notifications as read",
+                "marked_read": updated
+            }, 200
+            
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {"error": "Database error"}, 500
+class UserEmailAlerts(Resource):
+    @jwt_required()
+    def get(self):
+        """Get current email alert preference"""
+        user_id = get_jwt_identity()
+        user = User.query.get(int(user_id))
+        
+        if not user:
+            return {"error": "User not found"}, 404
+        
+        return {
+            "receive_email_alerts": user.receive_email_alerts
+        }, 200
+
+    @jwt_required()
+    def patch(self):
+        """Toggle email alert preference"""
+        user_id = get_jwt_identity()
+        user = User.query.get(int(user_id))
+        
+        if not user:
+            return {"error": "User not found"}, 404
+        
         user.receive_email_alerts = not user.receive_email_alerts
         db.session.commit()
         
@@ -535,6 +584,74 @@ class ToggleEmailAlerts(Resource):
             "message": f"Email alerts {'enabled' if user.receive_email_alerts else 'disabled'}",
             "receive_email_alerts": user.receive_email_alerts
         }, 200
+
+class UserNotificationsWithStatus(Resource):
+    @jwt_required()
+    def get(self):
+        """
+        Get all notifications with clear read/unread status
+        Returns:
+            - List of notifications with explicit status
+            - Visual status indicators in response
+            - Last read timestamp
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('limit', type=int, default=50, help='Limit results')
+        args = parser.parse_args()
+
+        user_id = get_jwt_identity()
+        user = User.query.get(int(user_id))
+        
+        if not user:
+            return {"error": "User not found"}, 404
+        
+        try:
+            # Get both read and unread notifications
+            notifications = db.session.query(
+                Notification,
+                UserNotification.is_read,
+                UserNotification.read_at
+            ).join(
+                UserNotification,
+                Notification.id == UserNotification.notification_id
+            ).filter(
+                UserNotification.user_id == user.id
+            ).order_by(
+                desc(Notification.created_at)
+            ).limit(args['limit']).all()
+
+            # Format response with explicit status
+            notifications_data = []
+            for notif, is_read, read_at in notifications:
+                status = "read" if is_read else "unread"
+                notifications_data.append({
+                    "id": notif.id,
+                    "message": notif.message,
+                    "type": notif.notification_type,
+                    "severity": notif.severity,
+                    "created_at": notif.created_at.isoformat(),
+                    "status": status,  # Explicit status field
+                    "status_icon": "✓" if is_read else "✕",  # Visual indicator
+                    "status_class": f"status-{status}",  # For CSS styling
+                    "read_at": read_at.isoformat() if read_at else None,
+                    "is_read": is_read  # Boolean flag for easy filtering
+                })
+
+            # Add summary stats
+            unread_count = sum(1 for n in notifications if not n[1])
+            
+            return {
+                "success": True,
+                "notifications": notifications_data,
+                "stats": {
+                    "total": len(notifications),
+                    "unread": unread_count,
+                    "read": len(notifications) - unread_count
+                }
+            }, 200
+            
+        except Exception as e:
+            return {"error": str(e)}, 500
 class PredictionResource(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
@@ -587,7 +704,9 @@ api.add_resource(CreateSensorReading, '/sensor-readings')
 api.add_resource(UserNotifications, '/notifications')
 api.add_resource(MarkNotificationRead, '/notifications/<int:notification_id>/read')
 api.add_resource(UnreadNotificationsCount, '/notifications/unread-count')
-api.add_resource(ToggleEmailAlerts, '/user/toggle-email-alerts')
+api.add_resource(MarkAllNotificationsRead, '/notifications/read-all')
+api.add_resource(UserNotificationsWithStatus, '/user/notifications/status')
+api.add_resource(UserEmailAlerts, '/user/email-alerts')
 api.add_resource(PredictionResource, '/predict')
 
 if __name__ == '__main__':
