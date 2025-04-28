@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { NavLink } from "react-router-dom";
 import Logo from "./Logo";
 import { AuthContext } from "../context/AuthContext";
+import NotificationBadge from "../pages/NotificationBadge";
 import "../styles/Navbar.css";
 
 const Navbar = () => {
@@ -24,9 +25,10 @@ const Navbar = () => {
                 Dashboard
               </NavLink>
             </li>
-            <li>
+            <li className="notification-item">
               <NavLink to="/notifications" className={({ isActive }) => (isActive ? "active" : "")}>
                 Notifications
+                <NotificationBadge />
               </NavLink>
             </li>
             <li>

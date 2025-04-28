@@ -1,61 +1,121 @@
-/* Navbar.css */
-
 .navbar {
-    display: flex;
-    align-items: center; 
-    justify-content: space-between; 
-    background: linear-gradient(to bottom right, #6b6760, #5c5342);
-    padding: 10px 20px;
-  }
-  
-  .navbar ul {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .navbar li {
-    margin-right: 30px;
-  }
-  
-  
-  
-  .navbar a {
-    color: #fff;
-    text-decoration: none;
-    font-size: 16px;
-  }
-  
-  .navbar .active {
-    font-weight: bold;
-    color: #07b966; /* Highlight color */
-  }
-  
-  .navbar a:hover {
-    color: #f39c12 !important;
-  }
-  
-  .navbar li {
-    margin-right: 30px;
-  }
-  
-  .navbar li:last-child {
-    margin-right: 0; 
-  }
-  
-  .navbar a {
-    color: #fff;
-    text-decoration: none;
-    font-size: 16px;
-  }
-  
-  .navbar .active {
-    font-weight: bold;
-    color: #07b966; 
-  }
-  
-  .navbar a:hover {
-    color: #f39c12!important;
-  }
-  
+  display: flex;
+  align-items: center; 
+  justify-content: space-between; 
+  background: linear-gradient(to bottom right, #6b6760, #5c5342);
+  padding: 10px 20px;
+}
+
+.navbar ul {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navbar li {
+  margin-right: 30px;
+  position: relative;
+}
+
+.navbar li:last-child {
+  margin-right: 0; 
+}
+
+.navbar a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.navbar .active {
+  font-weight: bold;
+  color: #07b966;
+}
+
+.navbar a:hover {
+  color: #f39c12 !important;
+}
+
+/* Notification Badge Styles */
+.notification-item .notification-badge-container {
+  position: relative;
+  display: inline-flex;
+}
+
+.notification-item .bell-icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  transition: fill 0.3s ease;
+}
+
+.notification-item .active .bell-icon {
+  fill: #07b966;
+}
+
+.notification-item .badge-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  animation: pulse 2s infinite;
+}
+
+.notification-item .badge-count.double-digit {
+  width: auto;
+  min-width: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+}
+
+.notification-item:hover .badge-count {
+  background-color: #c0392b;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Loading State */
+.notification-item .loading-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  background-color: #95a5a6;
+  border-radius: 50%;
+}
+
+/* Error State */
+.notification-item .notification-error {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  background-color: #fde8e8;
+  color: #e74c3c;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 8px;
+}

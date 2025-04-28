@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import { AuthContext } from "../context/AuthContext";
-import '../styles/UserManagement.css'; // Import the CSS file for styling
+import '../styles/UserManagement.css';
 
 const UserManagement = () => {
   const { user } = useContext(AuthContext);
@@ -9,14 +9,17 @@ const UserManagement = () => {
   const [editedUser, setEditedUser] = useState({
     full_name: "",
     email: "",
-    role: "User",
+    role: "Normal",
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   const accessToken = localStorage.getItem("access_token");
 
-  // Memoized fetchUsers function to avoid re-creating it on every render
   const fetchUsers = useCallback(async () => {
-    console.log("🔄 Fetching users...");
+    setLoading(true);
+    setError(null);
     try {
       const response = await fetch("http://localhost:5555/users", {
         method: "GET",
@@ -25,26 +28,26 @@ const UserManagement = () => {
         },
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        console.error("❌ Error fetching users:", data);
-        return;
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch users");
       }
 
-      console.log("✅ Users fetched:", data);
+      const data = await response.json();
       setUsers(data.users || []);
+      setSuccess("Users loaded successfully");
     } catch (error) {
-      console.error("❌ Network error:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-  }, [accessToken]); // useCallback ensures the function is only recreated if accessToken changes
+  }, [accessToken]);
 
-  // If no user or not admin, don't fetch users
   useEffect(() => {
     if (user?.role === "Admin") {
       fetchUsers();
     }
-  }, [user, fetchUsers]); // Added fetchUsers to the dependency array
+  }, [user, fetchUsers]);
 
   const startEditing = (user) => {
     setEditingUserId(user.id);
@@ -53,6 +56,8 @@ const UserManagement = () => {
       email: user.email,
       role: user.role,
     });
+    setError(null);
+    setSuccess(null);
   };
 
   const cancelEditing = () => {
@@ -60,7 +65,7 @@ const UserManagement = () => {
     setEditedUser({
       full_name: "",
       email: "",
-      role: "User",
+      role: "Normal",
     });
   };
 
@@ -70,8 +75,13 @@ const UserManagement = () => {
   };
 
   const saveEdit = async (id) => {
-    console.log(`💾 Saving edit for user ${id}...`, editedUser);
+    setLoading(true);
     try {
+      // Validate role
+      if (!['Admin', 'Normal'].includes(editedUser.role)) {
+        throw new Error("Invalid role selected");
+      }
+
       const response = await fetch(`http://localhost:5555/users/${id}`, {
         method: "PUT",
         headers: {
@@ -81,24 +91,27 @@ const UserManagement = () => {
         body: JSON.stringify(editedUser),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        console.error("❌ Edit failed:", data);
-        return;
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update user");
       }
 
-      console.log("✅ Edit successful:", data);
-      fetchUsers();
+      await fetchUsers();
       cancelEditing();
+      setSuccess("User updated successfully");
     } catch (error) {
-      console.error("❌ Error saving user:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteUser = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      return;
+    }
 
+    setLoading(true);
     try {
       const response = await fetch(`http://localhost:5555/users/${id}`, {
         method: "DELETE",
@@ -107,92 +120,172 @@ const UserManagement = () => {
         },
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        console.error("❌ Delete failed:", data);
-        return;
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete user");
       }
 
-      console.log("🗑️ User deleted:", data);
-      fetchUsers();
+      await fetchUsers();
+      setSuccess("User deleted successfully");
     } catch (error) {
-      console.error("❌ Error deleting user:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   if (!user) {
-    return <p>🔒 Please log in to manage users.</p>;
+    return (
+      <div className="auth-message">
+        <div className="message-icon">🔒</div>
+        <h2>Authentication Required</h2>
+        <p>Please log in to access the user management system.</p>
+      </div>
+    );
   }
 
   if (user.role !== "Admin") {
-    return <p>🚫 You do not have permission to access this page.</p>;
+    return (
+      <div className="auth-message">
+        <div className="message-icon">🚫</div>
+        <h2>Permission Denied</h2>
+        <p>Your account does not have administrator privileges to access this page.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="UserManagement">
-      <h1>User Management</h1>
-      {users.length === 0 ? (
-        <p>No users found.</p>
-      ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Full Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) =>
-              editingUserId === user.id ? (
-                <tr key={user.id}>
-                  <td>
-                    <input
-                      type="text"
-                      name="full_name"
-                      value={editedUser.full_name}
-                      onChange={handleEditChange}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="email"
-                      name="email"
-                      value={editedUser.email}
-                      onChange={handleEditChange}
-                    />
-                  </td>
-                  <td>
-                    <select
-                      name="role"
-                      value={editedUser.role}
-                      onChange={handleEditChange}
-                    >
-                      <option value="Admin">Admin</option>
-                      <option value="Normal">Normal</option>
-                    </select>
-                  </td>
-                  <td>
-                    <button className="save-button" onClick={() => saveEdit(user.id)}>Save</button>
-                    <button className="cancel-button" onClick={cancelEditing}>Cancel</button>
-                  </td>
+    <div className="user-management-container">
+      <div className="management-header">
+        <h1>User Management Dashboard</h1>
+        <p className="management-subtitle">
+          Manage system users and administrator privileges
+        </p>
+      </div>
+
+      {loading && users.length === 0 && (
+        <div className="loading-indicator">
+          <div className="spinner"></div>
+          <p>Loading user data...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-message">
+          <div className="error-icon">⚠️</div>
+          <p>{error}</p>
+          <button onClick={fetchUsers} className="retry-button">
+            Retry
+          </button>
+        </div>
+      )}
+
+      {success && (
+        <div className="success-message">
+          <div className="success-icon">✓</div>
+          <p>{success}</p>
+        </div>
+      )}
+
+      {!loading && users.length === 0 && !error && (
+        <div className="empty-state">
+          <p>No users found in the system.</p>
+        </div>
+      )}
+
+      {users.length > 0 && (
+        <div className="user-table-container">
+          <table className="user-table">
+            <thead>
+              <tr>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id} className={user.role === "Admin" ? "admin-row" : ""}>
+                  {editingUserId === user.id ? (
+                    <>
+                      <td>
+                        <input
+                          type="text"
+                          name="full_name"
+                          value={editedUser.full_name}
+                          onChange={handleEditChange}
+                          className="edit-input"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="email"
+                          name="email"
+                          value={editedUser.email}
+                          onChange={handleEditChange}
+                          className="edit-input"
+                        />
+                      </td>
+                      <td>
+                        <select
+                          name="role"
+                          value={editedUser.role}
+                          onChange={handleEditChange}
+                          className="role-select"
+                        >
+                          <option value="Normal">Normal</option>
+                          <option value="Admin">Admin</option>
+                        </select>
+                      </td>
+                      <td className="action-buttons">
+                        <button 
+                          onClick={() => saveEdit(user.id)} 
+                          className="save-button"
+                          disabled={loading}
+                        >
+                          {loading ? "Saving..." : "Save"}
+                        </button>
+                        <button 
+                          onClick={cancelEditing} 
+                          className="cancel-button"
+                          disabled={loading}
+                        >
+                          Cancel
+                        </button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{user.full_name}</td>
+                      <td>{user.email}</td>
+                      <td>
+                        <span className={`role-badge ${user.role.toLowerCase()}`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="action-buttons">
+                        <button 
+                          onClick={() => startEditing(user)} 
+                          className="edit-button"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => deleteUser(user.id)} 
+                          className="delete-button"
+                          disabled={user.id === parseInt(localStorage.getItem("user_id"))}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </>
+                  )}
                 </tr>
-              ) : (
-                <tr key={user.id}>
-                  <td>{user.full_name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role}</td>
-                  <td>
-                    <button onClick={() => startEditing(user)}>Edit</button>
-                    <button onClick={() => deleteUser(user.id)}>Delete</button>
-                  </td>
-                </tr>
-              )
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

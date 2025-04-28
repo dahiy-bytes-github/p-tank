@@ -1,36 +1,23 @@
-// Dashboard.js
-import React, { useState, useContext } from "react"; // Added useContext import
+import React, { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import SensorReadingsDashboard from "./SensorReadingsDashboard";
 import "../styles/Dashboard.css";
-import SensorReadingsDashboard from "./SensorReadingsDashboard"; // Use consistent naming
 
 const Dashboard = () => {
-  const [activeView, setActiveView] = useState('sensorReadings'); // Default view
-  const { user } = useContext(AuthContext); // Now properly imported
-
-  // Navigation functions
-  const showSensorReadings = () => setActiveView('sensorReadings');
-  // Add more show functions for other views as needed
+  const { user } = useContext(AuthContext);
 
   return (
     <div className="dashboard">
-      <h1>Welcome to Your Dashboard, {user?.email}!</h1>
+      <div className="dashboard-header">
+        <h1>Welcome, {user?.full_name || 'User'}!</h1>
+        <p className="welcome-message">
+          Here's your septic tank monitoring dashboard
+        </p>
+      </div>
       
-      {/* Navigation Menu */}
-      <nav className="dashboard-nav">
-        <button 
-          onClick={showSensorReadings}
-          className={activeView === 'sensorReadings' ? 'active' : ''}
-        >
-          Sensor Readings
-        </button>
-        {/* Add more navigation buttons for other views */}
-      </nav>
-      
-      {/* Content Area */}
+      {/* Directly display the sensor readings content */}
       <div className="dashboard-content">
-        {activeView === 'sensorReadings' && <SensorReadingsDashboard />}
-        {/* Add more views here as needed */}
+        <SensorReadingsDashboard />
       </div>
     </div>
   );

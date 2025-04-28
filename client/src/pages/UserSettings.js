@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/UserSettings.css';
@@ -6,6 +5,7 @@ import '../styles/UserSettings.css';
 const UserSettings = () => {
   const [receiveEmailAlerts, setReceiveEmailAlerts] = useState(true);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
@@ -14,57 +14,86 @@ const UserSettings = () => {
 
   const fetchSettings = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:5555/user/toggle-email-alerts', { // Assuming a profile endpoint
-        method: 'PATCH',
+      const response = await fetch('http://localhost:5555/user/email-alerts', {
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      
       if (!response.ok) {
         throw new Error('Failed to fetch settings');
       }
+      
       const data = await response.json();
       setReceiveEmailAlerts(data.receive_email_alerts);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const toggleEmailAlerts = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:5555/user/toggle-email-alerts', { // Adjusted URL
+      const response = await fetch('http://localhost:5555/user/email-alerts', {
         method: 'PATCH',
         headers: {
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to toggle email alerts');
+        throw new Error('Failed to update email alerts');
       }
 
       const data = await response.json();
       setReceiveEmailAlerts(data.receive_email_alerts);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (error) return <div className="error">{error}</div>;
-
   return (
     <div className="user-settings-container">
-      <h2>User Settings</h2>
-      <label>
-        Receive Email Alerts:
-        <input
-          type="checkbox"
-          checked={receiveEmailAlerts}
-          onChange={toggleEmailAlerts}
-        />
-      </label>
+      <h2>Notification Settings</h2>
+      
+      {error && (
+        <div className="error-message">
+          <div className="error-icon">⚠️</div>
+          <p>{error}</p>
+          <button onClick={fetchSettings} className="retry-button">
+            Retry
+          </button>
+        </div>
+      )}
+      
+      <div className="setting-item">
+        <span>Email Alerts:</span>
+        <button
+          className={`toggle-switch ${receiveEmailAlerts ? 'on' : 'off'}`}
+          onClick={toggleEmailAlerts}
+          disabled={loading}
+        >
+          <div className="toggle-knob"></div>
+          <span className="toggle-state">
+            {loading ? '...' : (receiveEmailAlerts ? 'ON' : 'OFF')}
+          </span>
+        </button>
+      </div>
+      
+      <p className="setting-description">
+        {receiveEmailAlerts 
+          ? "You'll receive email notifications for important alerts"
+          : "Email notifications are currently disabled"}
+      </p>
     </div>
   );
 };
