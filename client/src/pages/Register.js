@@ -1,7 +1,7 @@
 // src/pages/Register.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { validateEmail } from "../utils"; // New import
+import { validateEmail } from "../utils";
 import "../styles/Register.css";
 
 const Register = () => {
@@ -11,14 +11,13 @@ const Register = () => {
     password: "",
   });
   const [error, setError] = useState("");
-  const [emailError, setEmailError] = useState(""); // New state for email validation
+  const [emailError, setEmailError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    
-    // Validate email in real-time
+
     if (name === "email" && value) {
       setEmailError(validateEmail(value) ? "" : "Invalid email format");
     }
@@ -29,7 +28,6 @@ const Register = () => {
     setError("");
     setEmailError("");
 
-    // Frontend validation
     if (!validateEmail(formData.email)) {
       setEmailError("Please enter a valid email address");
       return;
@@ -45,7 +43,8 @@ const Register = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Registration failed");
 
-      navigate("/login");
+      // 👇 Redirect to / and show Login form
+      navigate("/", { state: { fromRegister: true } });
     } catch (err) {
       setError(err.message);
     }

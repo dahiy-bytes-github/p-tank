@@ -1,11 +1,19 @@
 // src/pages/Home.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Register from "./Register";
 import Login from "./Login";
 import "../styles/Home.css";
 
 const Home = () => {
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.fromRegister) {
+      setIsSigningUp(false); // 👈 Show login after registration
+    }
+  }, [location.state]);
 
   const toggleForm = () => {
     setIsSigningUp((prev) => !prev);
