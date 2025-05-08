@@ -35,7 +35,7 @@ app = Flask(__name__)
 # Enhanced CORS configuration
 CORS(
     app,
-    origins=["http://localhost:3000"],
+    origins="*",
     supports_credentials=True,
     methods=["GET", "POST", "PUT","PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"]
@@ -743,6 +743,14 @@ api.add_resource(UserNotificationsWithStatus, '/user/notifications/status')
 api.add_resource(UserEmailAlerts, '/user/email-alerts')
 api.add_resource(AllNotificationsWithStatus, '/notifications/all')
 api.add_resource(PredictionResource, '/predict')
+
+from flask import send_from_directory
+
+@app.route('/')
+@app.route('/<path:path>')
+def serve_react(path='index.html'):
+    return send_from_directory('../client/build', path)
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
