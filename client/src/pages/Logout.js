@@ -9,7 +9,7 @@ const Logout = () => {
   useEffect(() => {
     logout();
     navigate('/'); // Immediate redirect
-  }, []);
+  }, [logout, navigate]); // Added dependencies
 
   return <div>Logging out...</div>;
 };

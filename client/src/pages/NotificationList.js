@@ -8,7 +8,8 @@ const NotificationList = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { user } = useContext(AuthContext);
+  // Removed unused 'user' from destructuring
+  // const { user } = useContext(AuthContext);
 
   useEffect(() => {
     fetchNotifications();

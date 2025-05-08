@@ -2,14 +2,14 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/UserSettings.css';
 
-// Use the environment variable for the API base URL
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
 const UserSettings = () => {
   const [receiveEmailAlerts, setReceiveEmailAlerts] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { user } = useContext(AuthContext);
+  // Removed unused 'user'
+  // const { user } = useContext(AuthContext);
 
   useEffect(() => {
     fetchSettings();

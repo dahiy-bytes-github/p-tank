@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/NotificationBadge.css';
 
@@ -10,7 +10,7 @@ const NotificationBadge = ({ onClick }) => {
   const [error, setError] = useState(null);
   const { user } = useContext(AuthContext);
 
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -33,7 +33,7 @@ const NotificationBadge = ({ onClick }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchUnreadCount();
@@ -42,7 +42,7 @@ const NotificationBadge = ({ onClick }) => {
     const intervalId = setInterval(fetchUnreadCount, 30000);
     
     return () => clearInterval(intervalId);
-  }, [user]);
+  }, [fetchUnreadCount]); // Added fetchUnreadCount dependency
 
   if (error) {
     return (
