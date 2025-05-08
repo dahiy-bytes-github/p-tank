@@ -2,6 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/UserSettings.css';
 
+// Use the environment variable for the API base URL
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+
 const UserSettings = () => {
   const [receiveEmailAlerts, setReceiveEmailAlerts] = useState(true);
   const [error, setError] = useState('');
@@ -10,13 +13,15 @@ const UserSettings = () => {
 
   useEffect(() => {
     fetchSettings();
+    // eslint-disable-next-line
   }, []);
 
   const fetchSettings = async () => {
     try {
       setLoading(true);
+      setError('');
       const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:5555/user/email-alerts', {
+      const response = await fetch(`${apiBaseUrl}/user/email-alerts`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -39,8 +44,9 @@ const UserSettings = () => {
   const toggleEmailAlerts = async () => {
     try {
       setLoading(true);
+      setError('');
       const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:5555/user/email-alerts', {
+      const response = await fetch(`${apiBaseUrl}/user/email-alerts`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

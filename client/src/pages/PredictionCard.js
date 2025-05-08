@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import '../styles/PredictionCard.css';
 
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+
 const PredictionCard = () => {
   const [reading, setReading] = useState('');
   const [prediction, setPrediction] = useState(null);
@@ -13,7 +15,7 @@ const PredictionCard = () => {
     setError('');
     
     try {
-      const response = await fetch("http://localhost:5555/predict", {
+      const response = await fetch(`${apiBaseUrl}/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +89,7 @@ const PredictionCard = () => {
             <p>Next 3h Average: {prediction.prediction.next_3h}%</p>
             <p>Peak Level: {prediction.prediction.max_level}%</p>
             {prediction.prediction.critical && (
-              <p className="critical-warning">⚠️ Critical level predicted!</p>
+              <p className="critical-warning">Critical level predicted!</p>
             )}
           </div>
         </div>

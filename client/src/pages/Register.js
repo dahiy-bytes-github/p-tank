@@ -1,8 +1,9 @@
-// src/pages/Register.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { validateEmail } from "../utils";
 import "../styles/Register.css";
+
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -34,7 +35,7 @@ const Register = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5555/auth/register", {
+      const response = await fetch(`${apiBaseUrl}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -43,7 +44,7 @@ const Register = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Registration failed");
 
-      // 👇 Redirect to / and show Login form
+      //Redirect to / and show Login form
       navigate("/", { state: { fromRegister: true } });
     } catch (err) {
       setError(err.message);

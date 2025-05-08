@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import "../styles/GetAllUsersNotifications.css";
 
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+
 const GetAllUsersNotifications = () => {
   const { user } = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
@@ -19,7 +21,7 @@ const GetAllUsersNotifications = () => {
           setLoading(false);
           return;
         }
-        const res = await fetch("http://localhost:5555/notifications/all", {
+        const res = await fetch(`${apiBaseUrl}/notifications/all`, {
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,

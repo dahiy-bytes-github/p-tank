@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 import random
 
 from database import db
-from app import app 
+from app import app
 from models import SensorReading, User, Notification, UserNotification
 
 def seed_all():
@@ -12,7 +12,7 @@ def seed_all():
 
         now = datetime.now(timezone.utc)
 
-        # ---- Seed Users ----
+        # Seed Users
         users = [
             User(full_name="Alice Admin", email="alice@example.com", role="Admin"),
             User(full_name="Bob User", email="bob@example.com"),
@@ -23,30 +23,28 @@ def seed_all():
         db.session.add_all(users)
         db.session.commit()
 
-        print("✅ Seeded users table.")
+        print("Seeded users table.")
 
-        # ---- Seed SensorReadings ----
+        # Seed SensorReadings 
         readings = []
         for i in range(20):
             reading = SensorReading(
                 timestamp=now - timedelta(minutes=15 * i),
-                temp=round(random.uniform(20.0, 30.0), 2),
+                temp=round(random.uniform(20.0, 30.0), 2),  # Temperature between 20 and 30
                 ph=round(random.uniform(6.5, 8.0), 2),
-                tank_level_per=round(random.uniform(10.0, 100.0), 2),
-                predicted_full=random.choice([True, False])
+                tank_level_per=round(random.uniform(10.0, 100.0), 2)
             )
             readings.append(reading)
         db.session.add_all(readings)
         db.session.commit()
 
-        print("✅ Seeded sensor_readings table.")
+        print("Seeded sensor_readings table.")
 
-        # ---- Seed Notifications ----
+        # Seed Notifications (removed "sensor_offline")
         messages = [
             ("pH anomaly detected", "warning", "ph_anomaly"),
             ("Temperature exceeds safe levels", "critical", "temp_anomaly"),
-            ("Tank is nearly full", "info", "tank_full"),
-            ("Sensor offline for 5+ minutes", "warning", "sensor_offline")
+            ("Tank is nearly full", "info", "tank_full")
         ]
         notifications = []
         for msg, severity, ntype in messages:
@@ -59,22 +57,22 @@ def seed_all():
         db.session.add_all(notifications)
         db.session.commit()
 
-        print("✅ Seeded notifications table.")
+        print("Seeded notifications table.")
 
-        # ---- Seed UserNotifications ----
+        # Seed UserNotifications
         user_notifications = []
         for user in users:
             for notif in random.sample(notifications, k=random.randint(1, len(notifications))):
                 user_notifications.append(UserNotification(
                     user_id=user.id,
                     notification_id=notif.id,
-                    is_read=random.choice([True, False]),
+                    is_read=random.choice([False]),
                     read_at=now - timedelta(minutes=random.randint(5, 120)) if random.choice([True, False]) else None
                 ))
         db.session.add_all(user_notifications)
         db.session.commit()
 
-        print("✅ Seeded user_notifications table.")
+        print("Seeded user_notifications table.")
 
 if __name__ == "__main__":
     seed_all()

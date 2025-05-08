@@ -2,6 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/NotificationBadge.css';
 
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+
 const NotificationBadge = ({ onClick }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -13,7 +15,7 @@ const NotificationBadge = ({ onClick }) => {
     
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:5555/notifications/unread-count', {
+      const response = await fetch(`${apiBaseUrl}/notifications/unread-count`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

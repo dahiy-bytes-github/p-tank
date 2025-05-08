@@ -50,7 +50,7 @@ app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF for token auth
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ✅ Allow JWTs via headers and query string
+#Allow JWTs via headers and query string
 app.config['JWT_TOKEN_LOCATION'] = ['headers', 'query_string']
 app.config['JWT_QUERY_STRING_NAME'] = 'jwt'  # optional, default is already 'jwt'
 app.json.compact = False
@@ -199,7 +199,7 @@ class Logout(Resource):
     def post(self):
         jti = get_jwt()["jti"]
         if jti in blacklist:
-            return {"message": "Already logged out"}, 200  # ✅ Return success
+            return {"message": "Already logged out"}, 200
         
         blacklist.add(jti)
         return {"message": "Successfully logged out"}, 200
@@ -426,8 +426,6 @@ class CreateSensorReading(Resource):
                 "temp": new_reading.temp,
                 "ph": new_reading.ph,
                 "tank_level_per": new_reading.tank_level_per,
-                # REMOVE predicted_full
-                # "predicted_full": new_reading.predicted_full
             }
         }, 201
 
@@ -435,14 +433,12 @@ class CreateSensorReading(Resource):
 class UserNotifications(Resource):
     @jwt_required()
     def get(self):
-        # Get current user identity
         user_id = get_jwt_identity()
         user = User.query.get(int(user_id))
         
         if not user:
             return {"error": "User not found"}, 404
         
-        # Query all notifications for this user
         user_notifications = (
             UserNotification.query
             .join(Notification)
@@ -451,53 +447,52 @@ class UserNotifications(Resource):
             .all()
         )
         
-        # Format the response
         notifications_data = []
         for un in user_notifications:
-            notification = un.notification
             notifications_data.append({
-                "id": un.id,
-                "notification_id": notification.id,
-                "message": notification.message,
-                "severity": notification.severity,
-                "notification_type": notification.notification_type,
-                "created_at": notification.created_at.isoformat(),
+                "user_notification_id": un.id,  # Join table ID
+                "notification_id": un.notification.id,
+                "message": un.notification.message,
+                "severity": un.notification.severity,
+                "notification_type": un.notification.notification_type,
+                "created_at": un.notification.created_at.isoformat(),
                 "is_read": un.is_read,
                 "read_at": un.read_at.isoformat() if un.read_at else None
             })
         
         return {
             "message": "Notifications retrieved successfully",
-            "notifications": notifications_data,
-            "count": len(notifications_data)
+            "notifications": notifications_data
         }, 200
 
 class MarkNotificationRead(Resource):
     @jwt_required()
-    def patch(self, notification_id):
-        # Get current user identity
+    def patch(self, user_notification_id):  # Changed parameter name
         user_id = get_jwt_identity()
         user = User.query.get(int(user_id))
         
         if not user:
             return {"error": "User not found"}, 404
         
-        # Query the user notification
         user_notification = UserNotification.query.filter_by(
-            id=notification_id,
+            id=user_notification_id,  # Using join table ID
             user_id=user.id
         ).first()
         
         if not user_notification:
-            return {"error": "Notification not found"}, 404
+            return {"error": "User notification not found"}, 404
         
-        # Mark as read
         if not user_notification.is_read:
             user_notification.is_read = True
             user_notification.read_at = func.now()
             db.session.commit()
         
-        return {"message": "Notification marked as read"}, 200
+        return jsonify({
+            "success": True,
+            "user_notification_id": user_notification.id,
+            "is_read": user_notification.is_read,
+            "read_at": user_notification.read_at.isoformat() if user_notification.read_at else None
+        })
 
 class UnreadNotificationsCount(Resource):
     @jwt_required()
@@ -741,7 +736,7 @@ api.add_resource(UserUpdateDelete, '/users/<int:user_id>')
 api.add_resource(SensorReadings, '/sensorreadings')
 api.add_resource(CreateSensorReading, '/sensor-readings')
 api.add_resource(UserNotifications, '/notifications')
-api.add_resource(MarkNotificationRead, '/notifications/<int:notification_id>/read')
+api.add_resource(MarkNotificationRead, '/notifications/<int:user_notification_id>/read') 
 api.add_resource(UnreadNotificationsCount, '/notifications/unread-count')
 api.add_resource(MarkAllNotificationsRead, '/notifications/read-all')
 api.add_resource(UserNotificationsWithStatus, '/user/notifications/status')

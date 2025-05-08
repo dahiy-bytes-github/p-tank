@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import '../styles/SensorReadingDashboard.css';
 
+// Use the environment variable for the API base URL
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+
 const SensorReadingsDashboard = () => {
   const [readings, setReadings] = useState([]);
   const [pagination, setPagination] = useState({
@@ -39,7 +42,7 @@ const SensorReadingsDashboard = () => {
       }
 
       const params = new URLSearchParams(paramsObj);
-      const response = await fetch(`http://localhost:5555/sensorreadings?${params.toString()}`);
+      const response = await fetch(`${apiBaseUrl}/sensorreadings?${params.toString()}`);
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -59,6 +62,7 @@ const SensorReadingsDashboard = () => {
 
   useEffect(() => {
     fetchReadings();
+    // eslint-disable-next-line
   }, [pagination.page, pagination.limit, filtersApplied]);
 
   const handleFilterChange = (e) => {

@@ -3,6 +3,7 @@ import { AuthContext } from "../context/AuthContext";
 import '../styles/UserManagement.css';
 
 const FILTER_ROLES = ["All", "Admin", "Normal"];
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
 const UserManagement = () => {
   const { user } = useContext(AuthContext);
@@ -30,7 +31,7 @@ const UserManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:5555/users", {
+      const response = await fetch(`${apiBaseUrl}/users`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -98,7 +99,7 @@ const UserManagement = () => {
         throw new Error("Invalid role selected");
       }
 
-      const response = await fetch(`http://localhost:5555/users/${id}`, {
+      const response = await fetch(`${apiBaseUrl}/users/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -132,7 +133,7 @@ const UserManagement = () => {
     if (!deleteCandidate) return;
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5555/users/${deleteCandidate.id}`, {
+      const response = await fetch(`${apiBaseUrl}/users/${deleteCandidate.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -218,7 +219,6 @@ const UserManagement = () => {
           ))}
         </select>
       </div>
-
       {loading && users.length === 0 && (
         <div className="loading-indicator">
           <div className="spinner"></div>

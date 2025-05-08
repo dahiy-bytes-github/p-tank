@@ -11,7 +11,7 @@ const Home = () => {
 
   useEffect(() => {
     if (location.state?.fromRegister) {
-      setIsSigningUp(false); // 👈 Show login after registration
+      setIsSigningUp(false); //Show login after registration
     }
   }, [location.state]);
 
