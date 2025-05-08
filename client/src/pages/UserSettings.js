@@ -8,13 +8,13 @@ const UserSettings = () => {
   const [receiveEmailAlerts, setReceiveEmailAlerts] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  // Removed unused 'user'
-  // const { user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    fetchSettings();
-    // eslint-disable-next-line
-  }, []);
+    if (user) {
+      fetchSettings();
+    }
+  }, [user]);
 
   const fetchSettings = async () => {
     try {
@@ -27,11 +27,11 @@ const UserSettings = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch settings');
       }
-      
+
       const data = await response.json();
       setReceiveEmailAlerts(data.receive_email_alerts);
     } catch (err) {
@@ -67,10 +67,14 @@ const UserSettings = () => {
     }
   };
 
+  if (!user) {
+    return <div>Please log in to view settings.</div>;
+  }
+
   return (
     <div className="user-settings-container">
       <h2>Notification Settings</h2>
-      
+
       {error && (
         <div className="error-message">
           <div className="error-icon">⚠️</div>
@@ -80,7 +84,7 @@ const UserSettings = () => {
           </button>
         </div>
       )}
-      
+
       <div className="setting-item">
         <span>Email Alerts:</span>
         <button
@@ -89,16 +93,14 @@ const UserSettings = () => {
           disabled={loading}
         >
           <div className="toggle-knob"></div>
-          <span className="toggle-state">
-            {loading ? '...' : (receiveEmailAlerts ? 'ON' : 'OFF')}
-          </span>
+          <span className="toggle-state">{loading ? '...' : receiveEmailAlerts ? 'ON' : 'OFF'}</span>
         </button>
       </div>
-      
+
       <p className="setting-description">
-        {receiveEmailAlerts 
+        {receiveEmailAlerts
           ? "You'll receive email notifications for important alerts"
-          : "Email notifications are currently disabled"}
+          : 'Email notifications are currently disabled'}
       </p>
     </div>
   );

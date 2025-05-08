@@ -8,22 +8,28 @@ const NotificationList = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  // Removed unused 'user' from destructuring
-  // const { user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    fetchNotifications();
-  }, []);
+    if (user) {
+      fetchNotifications();
+    } else {
+      setNotifications([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const fetchNotifications = async () => {
     try {
+      setLoading(true);
+      setError('');
       const token = localStorage.getItem('access_token');
       const response = await fetch(`${apiBaseUrl}/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (!response.ok) throw new Error('Failed to fetch notifications');
-      
+
       const { notifications } = await response.json();
       setNotifications(notifications);
     } catch (err) {
@@ -37,7 +43,7 @@ const NotificationList = () => {
     try {
       const token = localStorage.getItem('access_token');
       const response = await fetch(
-        `${apiBaseUrl}/notifications/${userNotificationId}/read`, 
+        `${apiBaseUrl}/notifications/${userNotificationId}/read`,
         {
           method: 'PATCH',
           headers: { Authorization: `Bearer ${token}` },
@@ -45,13 +51,13 @@ const NotificationList = () => {
       );
 
       if (!response.ok) throw new Error('Failed to mark as read');
-      
+
       const updatedNotification = await response.json();
-      
-      setNotifications(prev =>
-        prev.map(n => 
-          n.user_notification_id === updatedNotification.user_notification_id 
-            ? { ...n, ...updatedNotification } 
+
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.user_notification_id === updatedNotification.user_notification_id
+            ? { ...n, ...updatedNotification }
             : n
         )
       );
@@ -69,35 +75,36 @@ const NotificationList = () => {
       });
 
       if (!response.ok) throw new Error('Failed to mark all as read');
-      
-      setNotifications(prev =>
-        prev.map(n => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
+
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
       );
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // Render loading/error states...
+  if (loading) return <div>Loading notifications...</div>;
+  if (error) return <div className="error-message">Error: {error}</div>;
 
   return (
     <div className="notification-list-container">
       <div className="notification-header">
         <h2>Notifications</h2>
-        {notifications.some(n => !n.is_read) && (
+        {notifications.some((n) => !n.is_read) && (
           <button onClick={markAllAsRead} className="mark-all-button">
             Mark All as Read
           </button>
         )}
       </div>
-      
+
       {notifications.length === 0 ? (
         <div className="empty-state">No notifications yet</div>
       ) : (
         <ul className="notification-list">
           {notifications.map((notification) => (
-            <li 
-              key={notification.user_notification_id} 
+            <li
+              key={notification.user_notification_id}
               className={`notification-item ${notification.is_read ? 'read' : 'unread'}`}
             >
               <div className="notification-content">
@@ -112,7 +119,7 @@ const NotificationList = () => {
                 </p>
               </div>
               {!notification.is_read && (
-                <button 
+                <button
                   onClick={() => markAsRead(notification.user_notification_id)}
                   className="mark-read-button"
                 >
