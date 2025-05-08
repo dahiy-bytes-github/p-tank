@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState, useCallback } from "react";
 import { AuthContext } from "../context/AuthContext";
 import '../styles/UserManagement.css';
 
+const FILTER_ROLES = ["All", "Admin", "Normal"];
+
 const UserManagement = () => {
   const { user } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
@@ -14,6 +16,13 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+
+  // Filter states
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("All");
+
+  // For delete confirmation dialog
+  const [deleteCandidate, setDeleteCandidate] = useState(null);
 
   const accessToken = localStorage.getItem("access_token");
 
@@ -42,6 +51,14 @@ const UserManagement = () => {
       setLoading(false);
     }
   }, [accessToken]);
+
+  // Auto-dismiss success message after 4 seconds
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => setSuccess(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
 
   useEffect(() => {
     if (user?.role === "Admin") {
@@ -77,7 +94,6 @@ const UserManagement = () => {
   const saveEdit = async (id) => {
     setLoading(true);
     try {
-      // Validate role
       if (!['Admin', 'Normal'].includes(editedUser.role)) {
         throw new Error("Invalid role selected");
       }
@@ -106,14 +122,17 @@ const UserManagement = () => {
     }
   };
 
-  const deleteUser = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
-      return;
-    }
+  // Show confirmation dialog instead of deleting immediately
+  const requestDeleteUser = (user) => {
+    setDeleteCandidate(user);
+  };
 
+  // Called only after confirmation
+  const confirmDeleteUser = async () => {
+    if (!deleteCandidate) return;
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5555/users/${id}`, {
+      const response = await fetch(`http://localhost:5555/users/${deleteCandidate.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -127,12 +146,29 @@ const UserManagement = () => {
 
       await fetchUsers();
       setSuccess("User deleted successfully");
+      setDeleteCandidate(null);
     } catch (error) {
       setError(error.message);
+      setDeleteCandidate(null);
     } finally {
       setLoading(false);
     }
   };
+
+  // Cancel deletion
+  const cancelDeleteUser = () => {
+    setDeleteCandidate(null);
+  };
+
+  // Filter logic: search + role
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch =
+      u.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      u.email.toLowerCase().includes(search.toLowerCase());
+    const matchesRole =
+      roleFilter === "All" ? true : u.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
 
   if (!user) {
     return (
@@ -163,6 +199,26 @@ const UserManagement = () => {
         </p>
       </div>
 
+      {/* Filter Controls */}
+      <div className="filter-controls">
+        <input
+          type="text"
+          placeholder="Search by name or email"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="search-input"
+        />
+        <select
+          value={roleFilter}
+          onChange={e => setRoleFilter(e.target.value)}
+          className="role-dropdown"
+        >
+          {FILTER_ROLES.map(role => (
+            <option key={role} value={role}>{role}</option>
+          ))}
+        </select>
+      </div>
+
       {loading && users.length === 0 && (
         <div className="loading-indicator">
           <div className="spinner"></div>
@@ -187,13 +243,33 @@ const UserManagement = () => {
         </div>
       )}
 
-      {!loading && users.length === 0 && !error && (
+      {/* Delete Confirmation Dialog */}
+      {deleteCandidate && (
+        <div className="custom-dialog-overlay">
+          <div className="custom-dialog">
+            <div className="dialog-title">Confirm Deletion</div>
+            <div className="dialog-message">
+              This user will be deleted permanently. Do you want to proceed?
+            </div>
+            <div className="dialog-actions">
+              <button className="cancel-button" onClick={cancelDeleteUser} disabled={loading}>
+                Cancel
+              </button>
+              <button className="delete-button" onClick={confirmDeleteUser} disabled={loading}>
+                {loading ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!loading && filteredUsers.length === 0 && !error && (
         <div className="empty-state">
           <p>No users found in the system.</p>
         </div>
       )}
 
-      {users.length > 0 && (
+      {filteredUsers.length > 0 && (
         <div className="user-table-container">
           <table className="user-table">
             <thead>
@@ -205,7 +281,7 @@ const UserManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <tr key={user.id} className={user.role === "Admin" ? "admin-row" : ""}>
                   {editingUserId === user.id ? (
                     <>
@@ -272,7 +348,7 @@ const UserManagement = () => {
                           Edit
                         </button>
                         <button 
-                          onClick={() => deleteUser(user.id)} 
+                          onClick={() => requestDeleteUser(user)} 
                           className="delete-button"
                           disabled={user.id === parseInt(localStorage.getItem("user_id"))}
                         >
