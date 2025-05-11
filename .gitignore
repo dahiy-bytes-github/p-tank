@@ -9,7 +9,6 @@ migrations/
 venv/
 .venv/
 .env
-Pipfile.lock
 *.egg-info/
 dist/
 htmlcov/
