@@ -1,5 +1,6 @@
 # Python (Flask backend in server/)
 server/__pycache__/
+server/models/__pycache__/
 server/*.py[cod]
 server/instance/
 server/*.db
