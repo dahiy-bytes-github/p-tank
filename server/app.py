@@ -82,23 +82,6 @@ def missing_token_callback(error):
         "message": "Request does not contain an access token"
     }), 401
 
-# Create admin user if not exists
-def create_admin():
-    with app.app_context():
-        existing_admin = User.query.filter_by(role='Admin').first()
-        if not existing_admin:
-            admin = User(
-                full_name='Admin User',
-                email='admin@example.com',
-                role='Admin'
-            )
-            admin_password = os.getenv('ADMIN_PASSWORD', 'admin123')
-            admin.set_password(admin_password)
-            db.session.add(admin)
-            db.session.commit()
-            print("Admin user created.")
-
-create_admin()
 
 # JWT token blocklist (for logout)
 blacklist = set()
