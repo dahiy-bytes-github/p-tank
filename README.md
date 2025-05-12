@@ -1,119 +1,104 @@
-P-Tank: Predictive Septic Tank Monitoring System
-P-Tank is a full-stack web application for real-time septic tank monitoring, featuring a React frontend and a Flask REST API backend with JWT authentication, user management, sensor data analytics, and notification alerts.
+# P-Tank: Predictive Septic Tank Monitoring System
 
-Table of Contents
-Features
+P-Tank is a full-stack web application for real-time septic tank monitoring.  
+It features a **React** frontend and a **Flask** REST API backend with **JWT authentication**, **user management**, **sensor data analytics**, and **notifications**.
 
-Architecture
+---
 
-Project Structure
+## Table of Contents
+- [Features](#features)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Deployment](#deployment)
+- [API Overview](#api-overview)
+- [How to Use the Live Website](#how-to-use-the-live-website)
+- [Security Notes](#security-notes)
+- [License](#license)
 
-Getting Started
+---
 
-Backend Setup (Flask)
+## Features
+- Secure **JWT-based** user authentication
+- Admin and normal user roles
+- Sensor data creation and viewing
+- Notifications for critical tank conditions
+- Admin user management
+- Predictive analytics with machine learning
+- Responsive **React** frontend
 
-Frontend Setup (React)
+---
 
-Environment Variables
+## Architecture
+- **Frontend:** React (`client/`)
+- **Backend:** Flask, Flask-RESTful, Flask-JWT-Extended (`server/`)
+- **Database:** PostgreSQL
+- **Deployment:** Render.com
 
-Deployment
+---
 
-API Overview
-
-Security Notes
-
-License
-
-Features
-User Authentication: Secure JWT-based login, registration, and token refresh.
-
-Role-Based Access: Admin and normal user roles.
-
-Sensor Data Management: Create and view septic tank sensor readings.
-
-Notifications: Automated alerts and user notifications for critical tank conditions.
-
-User Management: Admins can manage users.
-
-RESTful API: Well-structured endpoints for all resources.
-
-Machine Learning Integration: Predictive analytics for tank status.
-
-Responsive Frontend: Modern React SPA.
-
-Architecture
-Frontend: React (client/)
-
-Backend: Flask, Flask-RESTful, Flask-JWT-Extended, Flask-SQLAlchemy, Flask-Migrate (server/)
-
-Database: PostgreSQL (recommended for production)
-
-Deployment: Render.com (or compatible PaaS)
-
-Project Structure
-text
+## Project Structure
 p-tank/
-├── client/                 # React frontend
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   └── ...
-├── server/                 # Flask backend
-│   ├── app.py
-│   ├── models/
-│   ├── migrations/
-│   ├── database.py
-│   ├── utils.py
-│   ├── predictor.py
-│   ├── requirements.txt
-│   ├── Pipfile
-│   ├── Procfile
-│   └── ...
+├── client/ # React frontend
+├── server/ # Flask backend
 ├── .gitignore
 └── README.md
-Getting Started
-Backend Setup (Flask)
-Clone the repository:
 
-bash
-git clone https://github.com/dahiy-bytes-github/p-tank
-cd p-tank/server
-Install dependencies:
+---
 
-bash
-pipenv install --dev
-pipenv shell
-Configure environment variables:
-Create a .env file in server/ (see Environment Variables).
+## Getting Started
 
-Initialize the database:
+### Backend Setup (Flask)
 
-bash
-flask db upgrade
-Run the backend:
+1. Clone the repository:
+    ```
+    git clone https://github.com/dahiy-bytes-github/p-tank
+    cd p-tank/server
+    ```
 
-bash
-flask run
-Or for production:
+2. Install dependencies:
+    ```
+    pipenv install --dev
+    pipenv shell
+    ```
 
-bash
-pipenv run gunicorn app:app
-Frontend Setup (React)
-Install dependencies:
+3. Configure environment variables:  
+   Create a `.env` file (see [Environment Variables](#environment-variables)).
 
-bash
-cd ../client
-npm install
-Configure environment variables:
-Create a .env file in client/ (see Environment Variables).
+4. Initialize the database:
+    ```
+    flask db upgrade
+    ```
 
-Run the frontend:
+5. Run the backend:
+    ```
+    flask run
+    ```
 
-bash
-npm start
-Environment Variables
-Backend (server/.env)
-text
+---
+
+### Frontend Setup (React)
+
+1. Install dependencies:
+    ```
+    cd ../client
+    npm install
+    ```
+
+2. Configure environment variables:  
+   Create a `.env` file (see [Environment Variables](#environment-variables)).
+
+3. Run the frontend:
+    ```
+    npm start
+    ```
+
+---
+
+## Environment Variables
+
+### Backend (`server/.env`)
 DATABASE_URL=postgresql://user:password@host:port/dbname
 SECRET_KEY=your-secret-key
 JWT_SECRET_KEY=your-jwt-secret
@@ -121,76 +106,89 @@ MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-email-password
 MAIL_SERVER=smtp.gmail.com
 MAIL_PORT=465
-ADMIN_PASSWORD=your-initial-admin-password
-Frontend (client/.env)
-text
+
+
+### Frontend (`client/.env`)
 REACT_APP_API_BASE_URL=http://localhost:5000
-For production, set REACT_APP_API_BASE_URL to your backend’s deployed URL.
 
-Deployment
-Render.com (Recommended)
-Backend (Flask API)
-Root Directory: server
+> **Note:** For production, set `REACT_APP_API_BASE_URL` to your backend’s deployed URL.
 
-Build Command: pip install -r requirements.txt
+---
 
-Start Command: gunicorn app:app
+## Deployment (Render.com)
 
-Environment Variables: Set all from .env
+### Backend (Flask)
+- **Root Directory:** `server`
+- **Build Command:**
 
-Procfile: Must be in server/ with web: gunicorn app:app
+pip install -r requirements.txt
+- **Start Command:**
+gunicorn app:app
+- **Environment Variables:** Copy from your `.env` file.
+- **Procfile:** Inside `server/` with content:
+web: gunicorn app:app
 
-Frontend (React)
-Root Directory: client
 
-Build Command: npm install && npm run build
+### Frontend (React)
+- **Root Directory:** `client`
+- **Build Command:**
 
-Publish Directory: build
+npm install && npm run build
+- **Publish Directory:** `build`
+- **Environment Variables:** Set `REACT_APP_API_BASE_URL` to your deployed backend URL.
 
-Environment Variables: Set REACT_APP_API_BASE_URL to your backend’s Render URL
+---
 
-API Overview
-Authentication
+## API Overview
 
-POST /auth/register - Register new user
+### Authentication
+- `POST /auth/register` — Register a new user
+- `POST /auth/login` — Login and receive JWT tokens
+- `POST /auth/logout` — Logout (JWT blacklist)
+- `POST /refresh` — Refresh access token
 
-POST /auth/login - Login and receive JWT tokens
+### Users (Admin Only)
+- `GET /users` — List all users
+- `PUT /users/<user_id>` — Update a user
+- `DELETE /users/<user_id>` — Delete a user
 
-POST /auth/logout - Logout (JWT blacklist)
+### Sensor Readings
+- `GET /sensorreadings` — List or filter readings
+- `POST /sensor-readings/create` — Create a new reading
 
-POST /refresh - Refresh access token
+### Notifications
+- `GET /notifications` — Get user notifications
+- `PATCH /notifications/<user_notification_id>` — Mark notification as read
 
-Users
+---
 
-GET /users - List users (admin only)
+## How to Use the Live Website
 
-PUT /users/<user_id> - Update user (admin only)
+Visit the live app here:  
+👉 [**P-Tank Live Website**](https://p-tank-fren.onrender.com)
 
-DELETE /users/<user_id> - Delete user (admin only)
+Steps:
+1. **Register** a new user account.
+2. **Login** using your new credentials.
+3. To test **admin privileges**, login with:
+ - **Email:** `alice@example.com`
+ - **Password:** `test123`
+4. Explore:
+ - View sensor readings
+ - View notifications
+ - Manage users (only if logged in as admin)
 
-Sensor Readings
+---
 
-GET /sensorreadings - List/filter readings
+## Security Notes
+- Never commit `.env` files or secrets to version control.
+- Use strong and unique `SECRET_KEY` and `JWT_SECRET_KEY` values.
+- Restrict CORS origins to your frontend URL in production.
+- Immediately rotate credentials if exposed.
 
-POST /sensor-readings/create - Add new reading
+---
 
-Notifications
+## License
+This project is licensed under the **MIT License**.
 
-GET /notifications - Get user notifications
 
-PATCH /notifications/<user_notification_id> - Mark notification as read
-
-Security Notes
-Never commit .env or secrets to version control.
-
-Use strong, unique secrets for SECRET_KEY and JWT_SECRET_KEY.
-
-Restrict CORS origins to your frontend domain in production.
-
-Rotate credentials if secrets were ever exposed.
-
-License
-This project is licensed under the MIT License.
-
-Contributing
-Pull requests are welcome! For major changes, open an issue first to discuss what you would like to change.
