@@ -2,6 +2,8 @@ import React, { createContext, useState } from 'react';
 
 export const AuthContext = createContext();
 
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
@@ -25,7 +27,7 @@ export const AuthProvider = ({ children }) => {
     // Attempt server logout with token (if exists)
     if (token) {
       try {
-        await fetch('http://localhost:5555/auth/logout', {
+        await fetch(`${apiBaseUrl}/auth/logout`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           credentials: 'include'
